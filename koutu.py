@@ -1,3 +1,5 @@
+"""可执行的py文件，用于将不透明的doroGIF转换成透明GIF"""
+
 import os
 import cv2
 import numpy as np
