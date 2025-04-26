@@ -1,14 +1,13 @@
 # Doro   #桌面宠物
+![Logo](./logo.png)
+# 感谢支持与喜爱！( ˘ ³˘)♥
 
-A cute desktop pet that shows system information and can chat with you using DeepSeek AI.一款可爱的桌面宠物，能展示系统信息，还能通过 DeepSeek AI 与您聊天。
+## 公益项目 | 感谢大家的支持
 
-## Features   # #特性
-
-- Cute desktop pet with multiple animations- 可爱的桌面宠物，拥有多种动画效果
-- System information display (CPU, Memory, Network)系统信息显示（中央处理器、内存、网络）
-- Chat with AI using DeepSeek使用 DeepSeek 与 AI 聊天
-- Multiple theme colors   多种主题颜色
-- Customizable settings   可自定义设置
+作者碎碎念：  
+随便写的一个小demo没想到有这么多人喜欢，感谢大家的支持与喜爱。😊  
+**欢迎大家一起开发合作，让更多人喜欢 doro！**  
+谁不向往单纯的爱情呢？现实与理想，**doro**承载了对理想与纯真的寄托！💖
 
 ## Installation   # #安装
 
@@ -66,9 +65,8 @@ desktop-pet/
 ├── .env.example     # Example configuration├── .env.example     # 配置示例
 └── README.md        # Documentation
 ```
-![Logo](./logo.png)
 
-##打赏作者
+
 
 ## License   # #许可证
 
