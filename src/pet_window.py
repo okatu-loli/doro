@@ -18,7 +18,11 @@ from PySide6.QtWidgets import (
 )
 
 from .config import Config
-from .style_sheet import generate_menu_css, generate_message_css
+from .style_sheet import (
+    generate_menu_css,
+    generate_pet_info_css,
+    generate_messagebox_css,
+)
 
 
 class PetWindow(QMainWindow):
@@ -187,27 +191,7 @@ class PetWindow(QMainWindow):
         if os.path.exists(icon_path):
             msg_box.setWindowIcon(QIcon(icon_path))  # 为弹窗也设置图标
         msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)  # 只显示“确定”按钮
-        msg_box.setStyleSheet(
-            """
-            QMessageBox {
-                background-color: #fdf5fe; /* 淡灰色背景 */
-            }
-            QLabel { /* 调整文本标签样式 */
-                color: #ef5aad; /* 深灰色文本 */
-                font-size: 13px; /* 稍大字体 */
-            }
-            QPushButton { /* 按钮样式 */
-                background-color: #f771c8;
-                color: white;
-                padding: 5px 15px;
-                border-radius: 5px;
-                min-width: 60px;
-            }
-            QPushButton:hover {
-                background-color: #f282cb;
-            }
-        """
-        )
+        msg_box.setStyleSheet(generate_messagebox_css())
         msg_box.exec()  # 显示弹窗
 
     def load_gif_animation(self):
@@ -320,7 +304,7 @@ class PetWindow(QMainWindow):
         colors = self.config.get_theme_colors()
 
         # 设置信息窗口样式
-        self.info_widget.setStyleSheet(generate_message_css(colors))
+        self.info_widget.setStyleSheet(generate_pet_info_css(colors))
         self.info_widget.setObjectName("PetInfoWindowInfoWidget")
 
     def start_random_movement(self):
