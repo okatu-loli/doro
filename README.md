@@ -1,4 +1,4 @@
-# Desktop Pet   #桌面宠物
+# Doro   #桌面宠物
 
 A cute desktop pet that shows system information and can chat with you using DeepSeek AI.一款可爱的桌面宠物，能展示系统信息，还能通过 DeepSeek AI 与您聊天。
 
