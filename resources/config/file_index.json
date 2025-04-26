@@ -1,0 +1,14 @@
+{
+  "DEFAULT_CONFIG": {
+    "RELATIVE_PATH": "resources/config/default_config.json"
+  },
+  "CONFIG": {
+    "RELATIVE_PATH": "resources/config/config.json"
+  },
+  "THEME": {
+    "RELATIVE_PATH": "resources/config/theme.json"
+  },
+  "ICON": {
+    "PROJECT_ROOT": "{PROJECT_PATH}/resources/favicon.ico"
+  }
+}
