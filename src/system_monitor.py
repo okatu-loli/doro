@@ -1,6 +1,6 @@
 import psutil
 
-from src.config import Config
+from .config import Config
 
 
 class SystemMonitor:

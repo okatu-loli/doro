@@ -2,7 +2,7 @@ import os
 from typing import Any, Dict, Literal, Optional
 
 from .utils.FileIO import json_dump, json_load
-from src.const_hint import ConfigParam, StyleSheetParam
+from .const_hint import ConfigParam, StyleSheetParam
 
 
 class Config:

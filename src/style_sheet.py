@@ -1,4 +1,4 @@
-from src.const_hint import StyleSheetParam
+from .const_hint import StyleSheetParam
 
 
 def generate_preview_css(sheet: StyleSheetParam) -> str:

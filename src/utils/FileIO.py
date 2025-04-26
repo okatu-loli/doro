@@ -1,7 +1,7 @@
 import json
 from typing import Any
 
-from src.utils.EnvConsts import replace_map
+from .EnvConsts import replace_map
 
 
 def json_load(file_path: str, replace: bool = True) -> Any:

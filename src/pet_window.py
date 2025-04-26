@@ -17,8 +17,8 @@ from PySide6.QtWidgets import (
     QMessageBox,
 )
 
-from src.config import Config
-from style_sheet import generate_menu_css, generate_message_css
+from .config import Config
+from .style_sheet import generate_menu_css, generate_message_css
 
 
 class PetWindow(QMainWindow):

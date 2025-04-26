@@ -17,10 +17,10 @@ from PySide6.QtWidgets import (
     QComboBox,
 )
 
-from src.config import Config
-from src.const_hint import StyleSheetParam
-from src.pet_window import PetWindow
-from src.style_sheet import generate_preview_css, generate_full_css
+from .config import Config
+from .const_hint import StyleSheetParam
+from .pet_window import PetWindow
+from .style_sheet import generate_preview_css, generate_full_css
 
 
 class SettingsDialog(QDialog):
