@@ -12,15 +12,19 @@ A cute desktop pet that shows system information and can chat with you using Dee
 
 ## Installation   # #安装
 
-1. Clone the repository:
+1. Clone the repository:   1. 克隆此仓库：
    ```bash   ”“bash
-   git clone https://github.com/yourusername/desktop-pet.git
+   git clone https://github.com/yourusername/desktop-pet.git使用以下命令克隆仓库：
+
+```
+git clone https://github.com/yourusername/desktop-pet.git
+```
    cd desktop-pet
    ```   ' ' '
 
-2. Install the required dependencies:
+2. Install the required dependencies:2. 安装所需的依赖项：2. 安装所需的依赖项：
    ```bash   ”“bash
-   pip install -r requirements.txt
+   pip install -r requirements.txt运行 `pip install -r requirements.txt` 安装依赖包。
    ```   ' ' '
 
 3. Create a `.env` file in the project root with your DeepSeek API key:3. 在项目根目录中创建一个 `.env` 文件，并放入您的 DeepSeek API 密钥：
@@ -29,24 +33,24 @@ A cute desktop pet that shows system information and can chat with you using Dee
    # Edit .env and add your DeepSeek API key编辑.env文件并添加您的 DeepSeek API 密钥
    ```   ' ' '
 
-## Usage
+## Usage   # #使用
 
 Run the program:   运行程序：
-```bash
+```bash   ”“bash   ”“bash
 python main.py
 ```
 
-## Configuration
+## Configuration   # #配置
 
-You can customize the following settings in the `.env` file:
+You can customize the following settings in the `.env` file:您可以在 `.env` 文件中自定义以下设置：
 
-- `DEEPSEEK_API_KEY`: Your DeepSeek API key
-- `ANIMATION_FPS`: Animation frame rate (default: 30)
-- `WINDOW_WIDTH`: Pet window width (default: 300)
-- `WINDOW_HEIGHT`: Pet window height (default: 300)
+- `DEEPSEEK_API_KEY`: Your DeepSeek API key- `DEEPSEEK_API_KEY`：您的 DeepSeek API 密钥
+- `ANIMATION_FPS`: Animation frame rate (default: 30)- `ANIMATION_FPS`：动画帧率（默认值：30）
+- `WINDOW_WIDTH`: Pet window width (default: 300)- `WINDOW_WIDTH`：宠物窗口宽度（默认值：300）
+- `WINDOW_HEIGHT`: Pet window height (default: 300)- `WINDOW_HEIGHT`：宠物窗口高度（默认值：300）
 - `CURRENT_THEME`: Theme color (default: "粉色主题")
 
-## Development
+## Development   # #发展
 
 The project structure:   项目结构：
 ```
@@ -62,7 +66,8 @@ desktop-pet/
 ├── .env.example     # Example configuration├── .env.example     # 配置示例
 └── README.md        # Documentation
 ```
-[图片]
+![Logo](./logo.png)
+
 ##打赏作者
 
 ## License   # #许可证
