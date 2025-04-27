@@ -37,6 +37,7 @@ def generate_menu_css() -> str:
         QMenu::item {
             padding: 6px 24px 6px 24px;
             border-radius: 6px;
+            color: black;
         }
         QMenu::item:selected {
             background-color: #87cefa;

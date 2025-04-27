@@ -2,5 +2,11 @@
 .idea/
 **/__pycache__/
 .mypy_cache/
+.venv/
+.vscode/
+input/
+output_gifs/
 
 # Files
+*.bat
+resources/config/config.json
