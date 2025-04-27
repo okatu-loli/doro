@@ -232,6 +232,7 @@ class PetWindow(QMainWindow):
         self.movie: QMovie = movie
         self.animation_label.setMovie(self.movie)
         self.movie.start()
+        self.movie.finished.connect(self.return_to_normal)
 
     def play_random_normal_gif(self):
         """播放随机普通状态GIF"""
@@ -383,6 +384,7 @@ class PetWindow(QMainWindow):
 
     def return_to_normal(self):
         """返回普通状态"""
+        self.movie.stop()
         self.current_state = "normal"
         self.play_random_normal_gif()
 
