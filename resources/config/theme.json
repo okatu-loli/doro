@@ -1,0 +1,37 @@
+{
+  "粉色主题": {
+    "primary": "#FF69B4",
+    "secondary": "#FFB6C1",
+    "background": "#FFF0F5",
+    "text": "#333333",
+    "border": "rgba(255, 192, 203, 0.5)"
+  },
+  "蓝色主题": {
+    "primary": "#4169E1",
+    "secondary": "#87CEEB",
+    "background": "#F0F8FF",
+    "text": "#333333",
+    "border": "rgba(65, 105, 225, 0.5)"
+  },
+  "紫色主题": {
+    "primary": "#9370DB",
+    "secondary": "#DDA0DD",
+    "background": "#F8F8FF",
+    "text": "#333333",
+    "border": "rgba(147, 112, 219, 0.5)"
+  },
+  "绿色主题": {
+    "primary": "#2E8B57",
+    "secondary": "#98FB98",
+    "background": "#F0FFF0",
+    "text": "#333333",
+    "border": "rgba(46, 139, 87, 0.5)"
+  },
+  "橙色主题": {
+    "primary": "#FF8C00",
+    "secondary": "#FFA07A",
+    "background": "#FFFAF0",
+    "text": "#333333",
+    "border": "rgba(255, 140, 0, 0.5)"
+  }
+}
