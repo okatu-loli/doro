@@ -4,3 +4,4 @@
 .mypy_cache/
 
 # Files
+resources/config/config.json
