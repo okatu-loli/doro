@@ -4,7 +4,7 @@ import time
 from typing import Dict, List
 
 import psutil
-from PySide6.QtCore import Qt, QTimer, QSize, QPoint, QUrl, QEvent
+from PySide6.QtCore import QRect, Qt, QTimer, QSize, QPoint, QUrl, QEvent
 from PySide6.QtGui import QMovie, QIcon, QAction, QMouseEvent
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PySide6.QtWidgets import (
@@ -82,7 +82,10 @@ class PetWindow(QMainWindow):
 
         # 动画显示标签（左侧）
         self.animation_label = QLabel()
-        self.animation_label.setFixedSize(config.window_width, config.window_height)
+        self.animation_label.setFixedSize(
+            config.config["WINDOW"]["WINDOW_WIDTH"],
+            config.config["WINDOW"]["WINDOW_HEIGHT"],
+        )
         self.animation_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # 将动画和信息部件添加到主布局
@@ -91,9 +94,11 @@ class PetWindow(QMainWindow):
 
         # 计算并设置窗口总大小
         total_width = (
-            config.window_width + self.info_widget.width() + self.main_layout.spacing()
+            config.config["WINDOW"]["WINDOW_WIDTH"]
+            + self.info_widget.width()
+            + self.main_layout.spacing()
         )
-        total_height = config.window_height
+        total_height = config.config["WINDOW"]["WINDOW_HEIGHT"]
         self.setFixedSize(total_width, total_height)
 
         music_path = os.path.join(
@@ -147,10 +152,12 @@ class PetWindow(QMainWindow):
         self.random_move_timer.timeout.connect(self.start_random_movement)
         # 根据配置决定是否启动随机移动
         if self.config.allow_random_movement:
-            self.random_move_timer.start(self.config.random_interval * 1000)
+            self.random_move_timer.start(
+                self.config.get("RANDOM")["RANDOM_INTERVAL"] * 1000
+            )
 
         # 屏幕几何信息
-        self.screen_geometry = self.screen().availableGeometry()
+        self.screen_geometry: QRect = self.screen().availableGeometry()
 
         # 应用主题
         self.update_theme()
@@ -213,7 +220,10 @@ class PetWindow(QMainWindow):
         if gif_path not in self.gif_cache:
             movie = QMovie(gif_path)
             movie.setScaledSize(
-                QSize(self.config.window_width, self.config.window_height)
+                QSize(
+                    self.config.config["WINDOW"]["WINDOW_WIDTH"],
+                    self.config.config["WINDOW"]["WINDOW_HEIGHT"],
+                )
             )
             self.gif_cache[gif_path] = movie
         else:
@@ -232,18 +242,19 @@ class PetWindow(QMainWindow):
 
     def set_info_visible(self, visible: bool):
         """设置信息窗口可见性，并动态调整窗口大小"""
-        self.info_visible = visible
+        print(f"设置信息窗口可见性: {visible}")
+        self.info_visible: bool = visible
         self.info_widget.setVisible(visible)
         # 动态调整窗口宽度，防止信息栏隐藏后动画被挤压
         if visible:
             total_width = (
-                self.config.window_width
+                self.config.config["WINDOW"]["WINDOW_WIDTH"]
                 + self.info_widget.width()
                 + self.main_layout.spacing()
             )
         else:
-            total_width = self.config.window_width
-        total_height = self.config.window_height
+            total_width = self.config.config["WINDOW"]["WINDOW_WIDTH"]
+        total_height = self.config.config["WINDOW"]["WINDOW_HEIGHT"]
         self.setFixedSize(total_width, total_height)
 
     def decrease_hunger(self):
