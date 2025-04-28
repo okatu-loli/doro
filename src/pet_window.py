@@ -122,6 +122,10 @@ class PetWindow(QMainWindow):
         self.audio_output = QAudioOutput()
         self.audio_player.setAudioOutput(self.audio_output)
 
+        if os.path.exists(self.click_mp3_path):
+            self.audio_player.setSource(QUrl.fromLocalFile(self.click_mp3_path))
+            self.audio_player.stop()
+
         # 加载初始动画
         self.load_gif_animation()
 
@@ -167,7 +171,7 @@ class PetWindow(QMainWindow):
         """显示关于Doro的信息弹窗"""
         about_text = """Doro 桌宠使用指南
 
-欢迎使用 Doro 桌宠！
+人，你来啦
 
 
 1. 基本交互
@@ -456,20 +460,21 @@ class PetWindow(QMainWindow):
 
     def mouseDoubleClickEvent(self, event: QMouseEvent):
         """鼠标双击事件处理（播放特殊动画或音效）"""
-        if event.button() == Qt.MouseButton.LeftButton:
-            if self.animation_label.geometry().contains(event.position().toPoint()):
-                # 播放点击动画和音效
-                self.current_state = "click"
-                self.play_gif(self.click_gif_path)
-                if os.path.exists(self.click_mp3_path):
-                    self.audio_player.setSource(QUrl.fromLocalFile(self.click_mp3_path))
-                    self.audio_player.play()
-                # 动画播放完后恢复普通状态
-                QTimer.singleShot(18000, self.return_to_normal)  # type: ignore[call-arg-type]
-            else:
-                super().mouseDoubleClickEvent(event)
-        else:
+        if event.button() != Qt.MouseButton.LeftButton:
             super().mouseDoubleClickEvent(event)
+            return
+        if not self.animation_label.geometry().contains(event.position().toPoint()):
+            super().mouseDoubleClickEvent(event)
+            return
+
+        # 播放点击动画和音效
+        self.current_state = "click"
+        self.play_gif(self.click_gif_path)
+        if os.path.exists(self.click_mp3_path):
+            self.audio_player.setSource(QUrl.fromLocalFile(self.click_mp3_path))
+            self.audio_player.play()
+        # 动画播放完后恢复普通状态
+        QTimer.singleShot(18000, self.return_to_normal)  # type: ignore[call-arg-type]
 
     def closeEvent(self, event: QEvent):
         """窗口关闭时清理资源"""
@@ -504,25 +509,13 @@ class PetWindow(QMainWindow):
             print(f"路径不存在: {base_path}")
             return
 
-        # 加载common文件夹中的GIF
-        common_path = os.path.join(base_path, "common")
-        self.normal_gif_paths = [
-            os.path.join(common_path, f)
-            for f in os.listdir(common_path)
-            if f.endswith(".gif")
-        ]
-
-        # 加载move文件夹中的GIF
-        move_path = os.path.join(base_path, "move")
-        self.move_gif_paths = [
-            os.path.join(move_path, f)
-            for f in os.listdir(move_path)
-            if f.endswith(".gif")
-        ]
-
+        self.normal_gif_paths = self.load_gif_from_folder(
+            os.path.join(base_path, "common")
+        )
         self.hungry_gif_paths = self.load_gif_from_folder(
             os.path.join(base_path, "hungry")
         )
+        self.move_gif_paths = self.load_gif_from_folder(os.path.join(base_path, "move"))
         self.click_gif_path = os.path.join(base_path, "click", "click.gif")
         self.eat_gif_path = os.path.join(base_path, "eat", "eat.gif")
         self.drag_gif_path = os.path.join(base_path, "drag", "drag.gif")
