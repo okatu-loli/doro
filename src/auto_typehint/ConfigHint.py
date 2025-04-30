@@ -40,11 +40,10 @@ class ConfigParam(TypedDict):
     Theme: ThemeParam
     Workspace: WorkspaceParam
     Hunger: HungerParam
-    TEST: str
 
 
 ConfigLiteral = Literal[
-    "Window", "Animation", "Random", "Info", "Theme", "Workspace", "Hunger", "TEST"
+    "Window", "Animation", "Random", "Info", "Theme", "Workspace", "Hunger"
 ]
 WindowLiteral = Literal["Width", "Height"]
 AnimationLiteral = Literal["FPS"]
