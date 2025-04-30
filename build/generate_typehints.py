@@ -5,7 +5,6 @@ This script generates type hints for the configuration files in the project.
 It reads JSON files from the 'resources/config' directory and generates
 Python TypedDict classes with appropriate type hints.
 The generated type hints are saved in the 'src/auto_typehint' directory.
-The script also formats the generated files using the Black code formatter.
 """
 
 import json
