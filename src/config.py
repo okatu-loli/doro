@@ -1,80 +1,54 @@
-import os
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Dict, Final, Optional
 
 from .utils.FileIO import json_dump, json_load
-from .const_hint import ConfigParam, StyleSheetParam
+from .auto_typehint import ConfigHint, FileIndexHint, ThemeHint
 
 
 class Config:
     # 预定义主题
-    PATH_CONFIG: Dict[str, Dict[str, str]] = json_load(
+    PATH_CONFIG: FileIndexHint.FileIndexParam = json_load(
         "resources/config/file_index.json"
     )
-    THEMES: StyleSheetParam = json_load(PATH_CONFIG["THEME"]["RELATIVE_PATH"])
+    THEMES: ThemeHint.ThemeParam = json_load(PATH_CONFIG["Theme"]["RelativePath"])
 
     def __init__(self):
-        self._config: Optional[ConfigParam] = json_load(
-            Config.PATH_CONFIG["CONFIG"]["RELATIVE_PATH"]
+        _config: Optional[ConfigHint.ConfigParam] = json_load(
+            Config.PATH_CONFIG["Config"]["RelativePath"]
+        )
+        self._default_config: Final[ConfigHint.ConfigParam] = (
+            self._read_default_config()
         )
 
-        # 托盘配置
-        default_ico_path: str = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)),
-            "resources",
-            "icons",
-            "favicon.ico",
-        )
-        self.tray_icon: str = self.config["TRAY"].get(
-            "TRAY_ICON"
-        ) or Config.PATH_CONFIG["ICON"].get("RELATIVE_PATH", default_ico_path)
-
-        # 工作区配置
-        self.allow_random_movement: bool = self.config["WORKSPACE"].get(
-            "ALLOW_RANDOM_MOVEMENT", True
-        )
+        self._config: ConfigHint.ConfigParam = _config or self._default_config
+        if _config is None:
+            self.save()
 
     @property
-    def config(self) -> ConfigParam:
+    def config(self) -> ConfigHint.ConfigParam:
         """获取当前配置项"""
-        if self._config is None:
-            self._config = json_load(
-                Config.PATH_CONFIG["CONFIG"]["RELATIVE_PATH"], replace=True
-            )
-
-        if self._config is None:
-            self._config = self._read_default_config()
-            self.save()
+        for key, value in self._default_config.items():
+            if key not in self._config:
+                self._config[key] = value
 
         return self._config
 
-    def _read_default_config(self) -> ConfigParam:
+    def _read_default_config(self) -> ConfigHint.ConfigParam:
         return json_load(
-            Config.PATH_CONFIG["DEFAULT_CONFIG"]["RELATIVE_PATH"],
+            Config.PATH_CONFIG["DefaultConfig"]["RelativePath"],
             replace=True,
         )
 
     def get_theme_colors(
         self,
-    ) -> StyleSheetParam:
+    ) -> ThemeHint.ThemeParam:
         """获取当前主题的颜色"""
-        return StyleSheetParam(
-            Config.THEMES.get(self.config["THEME"]["DEFAULT_THEME"], {})
+        return ThemeHint.ThemeParam(
+            Config.THEMES.get(self.config["Theme"]["DefaultTheme"], {})
         )
 
-    def get(
-        self,
-        key: Literal[
-            "WINDOW",
-            "ANIMATION",
-            "RANDOM",
-            "INFO",
-            "THEME",
-            "TRAY",
-            "WORKSPACE",
-        ],
-    ) -> Dict[str, Any]:
+    def get(self, key: ConfigHint.ConfigLiteral) -> Dict[str, Any]:
         """获取配置项的值"""
         return self.config.get(key, None) or {}
 
     def save(self):
-        json_dump(Config.PATH_CONFIG["CONFIG"]["RELATIVE_PATH"], self.config)
+        json_dump(Config.PATH_CONFIG["Config"]["RelativePath"], self.config)
