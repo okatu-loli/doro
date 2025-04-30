@@ -5,7 +5,7 @@ from typing import Dict, List
 
 import psutil
 from PySide6.QtCore import QRect, Qt, QTimer, QSize, QPoint, QUrl, QEvent
-from PySide6.QtGui import QMovie, QIcon, QAction, QMouseEvent
+from PySide6.QtGui import QMovie, QIcon, QAction, QMouseEvent, QTransform
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PySide6.QtWidgets import (
     QMainWindow,
@@ -23,6 +23,7 @@ from .style_sheet import (
     generate_pet_info_css,
     generate_messagebox_css,
 )
+from .setting_gui import SettingsDialog
 
 
 class PetWindow(QMainWindow):
@@ -39,9 +40,7 @@ class PetWindow(QMainWindow):
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
         # 设置窗口图标（favicon.ico）
-        icon_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), "resources", "favicon.ico"
-        )
+        icon_path = Config.PATH_CONFIG["Icon"]["RelativePath"]
         if os.path.exists(icon_path):
             self.setWindowIcon(QIcon(icon_path))
         self.animation_timer = QTimer()
@@ -77,14 +76,14 @@ class PetWindow(QMainWindow):
         self.hunger = 100  # 初始饥饿值
         self.hunger_timer = QTimer()
         self.hunger_timer.timeout.connect(self.decrease_hunger)
-        self.hunger_timer.start(2000)
+        self.hunger_timer.start(int(20000 / config.config["Hunger"]["Rate"]))
         self.is_hungry_playing = False
 
         # 动画显示标签（左侧）
         self.animation_label = QLabel()
         self.animation_label.setFixedSize(
-            config.config["WINDOW"]["WINDOW_WIDTH"],
-            config.config["WINDOW"]["WINDOW_HEIGHT"],
+            config.config["Window"]["Width"],
+            config.config["Window"]["Height"],
         )
         self.animation_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -94,11 +93,12 @@ class PetWindow(QMainWindow):
 
         # 计算并设置窗口总大小
         total_width = (
-            config.config["WINDOW"]["WINDOW_WIDTH"]
+            config.config["Window"]["Width"]
             + self.info_widget.width()
             + self.main_layout.spacing()
         )
-        total_height = config.config["WINDOW"]["WINDOW_HEIGHT"]
+
+        total_height = config.config["Window"]["Height"]
         self.setFixedSize(total_width, total_height)
 
         music_path = os.path.join(
@@ -155,9 +155,9 @@ class PetWindow(QMainWindow):
         self.random_move_timer = QTimer()
         self.random_move_timer.timeout.connect(self.start_random_movement)
         # 根据配置决定是否启动随机移动
-        if self.config.allow_random_movement:
+        if self.config.config["Workspace"]["AllowRandomMovement"]:
             self.random_move_timer.start(
-                self.config.get("RANDOM")["RANDOM_INTERVAL"] * 1000
+                self.config.config["Random"]["Interval"] * 1000
             )
 
         # 屏幕几何信息
@@ -209,8 +209,8 @@ class PetWindow(QMainWindow):
         """加载并播放随机普通状态GIF"""
         self.play_random_normal_gif()
 
-    def play_gif(self, gif_path: str):
-        """播放指定路径的GIF动画"""
+    def play_gif(self, gif_path: str, mirror: bool = False):
+        """播放指定路径的GIF动画，可选水平镜像"""
         if not os.path.exists(gif_path):
             print(f"GIF文件不存在: {gif_path}")
             return
@@ -218,25 +218,37 @@ class PetWindow(QMainWindow):
         # 停止当前动画
         if hasattr(self, "movie") and self.movie:
             self.movie.stop()
-            self.animation_label.setMovie(QMovie())
+            self.animation_label.clear()
 
-        # 从缓存中获取或创建新动画
-        if gif_path not in self.gif_cache:
-            movie = QMovie(gif_path)
-            movie.setScaledSize(
-                QSize(
-                    self.config.config["WINDOW"]["WINDOW_WIDTH"],
-                    self.config.config["WINDOW"]["WINDOW_HEIGHT"],
-                )
+        # 创建新动画
+        movie = QMovie(gif_path)
+        movie.setScaledSize(
+            QSize(
+                self.config.config["Window"]["Width"],
+                self.config.config["Window"]["Height"],
             )
-            self.gif_cache[gif_path] = movie
-        else:
-            movie = self.gif_cache[gif_path]
-
+        )
         self.movie: QMovie = movie
-        self.animation_label.setMovie(self.movie)
-        self.movie.start()
+
+        if mirror:
+            # 连接帧变化信号，实现逐帧镜像
+            def update_frame():
+                frame = self.movie.currentPixmap()
+                mirrored = frame.transformed(QTransform().scale(-1, 1))
+                self.animation_label.setPixmap(mirrored)
+
+            self.movie.frameChanged.connect(update_frame)
+            self.movie.start()
+        else:
+            self.animation_label.setMovie(self.movie)
+            self.movie.start()
         self.movie.finished.connect(self.return_to_normal)
+
+        # 设置镜像效果
+        if mirror:
+            self.animation_label.setStyleSheet("transform: scaleX(-1);")
+        else:
+            self.animation_label.setStyleSheet("")
 
     def play_random_normal_gif(self):
         """播放随机普通状态GIF"""
@@ -247,27 +259,25 @@ class PetWindow(QMainWindow):
 
     def set_info_visible(self, visible: bool):
         """设置信息窗口可见性，并动态调整窗口大小"""
-        print(f"设置信息窗口可见性: {visible}")
         self.info_visible: bool = visible
         self.info_widget.setVisible(visible)
         # 动态调整窗口宽度，防止信息栏隐藏后动画被挤压
         if visible:
             total_width = (
-                self.config.config["WINDOW"]["WINDOW_WIDTH"]
+                self.config.config["Window"]["Width"]
                 + self.info_widget.width()
                 + self.main_layout.spacing()
             )
         else:
-            total_width = self.config.config["WINDOW"]["WINDOW_WIDTH"]
-        total_height = self.config.config["WINDOW"]["WINDOW_HEIGHT"]
+            total_width = self.config.config["Window"]["Width"]
+        total_height = self.config.config["Window"]["Height"]
         self.setFixedSize(total_width, total_height)
 
     def decrease_hunger(self):
-        """Periodically decrease hunger value"""
         if self.hunger > 0:
             self.hunger -= 1
         self.hunger_label.setText(f"饥饿值: {self.hunger}")
-        if 30 > self.hunger > 0 and not self.is_hungry_playing:
+        if 30 > self.hunger >= 0 and not self.is_hungry_playing:
             self.is_hungry_playing = True
             self.play_gif(random.choice(self.hungry_gif_paths))
             QTimer.singleShot(800, self.reset_hungry_flag)  # type: ignore[call-arg-type]
@@ -329,26 +339,27 @@ class PetWindow(QMainWindow):
             not self.is_moving
             and not self.is_dragging
             and random.random() < 0.1
-            and self.config.allow_random_movement
+            and self.config.config["Workspace"]["AllowRandomMovement"]
         ):
             delay = random.randint(5000, 5000)  # 减少移动频率
             QTimer.singleShot(delay, self.prepare_movement)  # type: ignore[call-arg-type]
 
     def prepare_movement(self):
-        """准备移动动画和方向"""
+        """准备移动动画和方向，自动适配 GIF 方向"""
         if self.is_dragging:
             return
 
         self.current_state = "move"
-        self.play_gif(random.choice(self.move_gif_paths))
-
-        # 随机选择移动方向
         self.move_direction = random.choice(["left", "right", "up", "down"])
-        self.move_duration = random.randint(5000, 10000)  # 减少移动持续时间
+        move_gif = random.choice(self.move_gif_paths)
+
+        # 右移时镜像
+        mirror = self.move_direction == "right"
+        self.play_gif(move_gif, mirror=mirror)
+
+        self.move_duration = random.randint(5000, 10000)
         self.is_moving = True
         self.move_timer.start(50)
-
-        # 设置移动持续时间
         QTimer.singleShot(self.move_duration, self.stop_movement)  # type: ignore[call-arg-type]
 
     def move_pet(self):
@@ -392,6 +403,11 @@ class PetWindow(QMainWindow):
         self.current_state = "normal"
         self.play_random_normal_gif()
 
+    def show_settings(self):
+        """显示设置对话框"""
+        dialog = SettingsDialog(self.config, self)
+        dialog.exec()
+
     def mousePressEvent(self, event: QMouseEvent):
         """鼠标按下事件处理（用于拖动窗口和弹出菜单）"""
         if event.button() == Qt.MouseButton.LeftButton:
@@ -423,6 +439,10 @@ class PetWindow(QMainWindow):
                     self.show_about_info
                 )  # 连接到更新后的方法
                 menu.addAction(info_action)
+                # 新增：设置菜单项
+                settings_action = QAction("设置", self)
+                settings_action.triggered.connect(self.show_settings)
+                menu.addAction(settings_action)
                 # 弹出菜单
                 menu.exec(event.globalPosition().toPoint())  # type: ignore[misc, overload-cannot-match]
             else:
