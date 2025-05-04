@@ -1,7 +1,7 @@
-from .const_hint import StyleSheetParam
+from .auto_typehint import ThemeHint
 
 
-def generate_preview_css(sheet: StyleSheetParam) -> str:
+def generate_preview_css(sheet: ThemeHint.ThemeParam) -> str:
     return f"""
             background-color: {sheet.get("primary")};
             border-radius: 15px;
@@ -9,16 +9,16 @@ def generate_preview_css(sheet: StyleSheetParam) -> str:
         """
 
 
-def generate_pet_info_css(colors: StyleSheetParam) -> str:
+def generate_pet_info_css(colors: ThemeHint.ThemeParam) -> str:
     return f"""
             QWidget#PetInfoWindowInfoWidget {{
-                background-color: {colors['background']};
+                background-color: {colors.get("background")};
                 border-radius: 10px;
-                color: {colors['primary']};
-                border: 1px solid {colors['border']};
+                color: {colors.get("primary")};
+                border: 1px solid {colors.get("border")};
             }}
             QLabel {{
-                color: {colors['primary']};
+                color: {colors.get("primary")};
                 font-size: 12px;
                 background-color: transparent;
                 border: none;
@@ -68,31 +68,31 @@ def generate_messagebox_css() -> str:
     """
 
 
-def generate_full_css(colors: StyleSheetParam) -> str:
+def generate_full_css(colors: ThemeHint.ThemeParam) -> str:
     return f"""
             QDialog {{
-                background-color: {colors['background']};
+                background-color: {colors.get("background")};
             }}
             QLabel {{
-                color: {colors['primary']};
+                color: {colors.get('primary')};
                 font-size: 14px;
             }}
             QLineEdit {{
                 background-color: rgba(255, 255, 255, 0.8);
-                border: 1px solid {colors['border']};
+                border: 1px solid {colors.get('border')};
                 border-radius: 5px;
                 padding: 5px;
-                color: {colors['text']};
+                color: {colors.get('text')};
             }}
             QSpinBox {{
                 background-color: rgba(255, 255, 255, 0.8);
-                border: 1px solid {colors['border']};
+                border: 1px solid {colors.get('border')};
                 border-radius: 5px;
                 padding: 5px;
-                color: {colors['text']};
+                color: {colors.get('text')};
             }}
             QPushButton {{
-                background-color: {colors['primary']};
+                background-color: {colors.get('primary')};
                 color: white;
                 border: none;
                 border-radius: 5px;
@@ -100,13 +100,13 @@ def generate_full_css(colors: StyleSheetParam) -> str:
                 font-size: 14px;
             }}
             QPushButton:hover {{
-                background-color: {colors['secondary']};
+                background-color: {colors.get('secondary')};
             }}
             QPushButton:pressed {{
-                background-color: {colors['primary']};
+                background-color: {colors.get('primary')};
             }}
             QCheckBox {{
-                color: {colors['primary']};
+                color: {colors.get('primary')};
             }}
             QCheckBox::indicator {{
                 width: 15px;
@@ -114,20 +114,20 @@ def generate_full_css(colors: StyleSheetParam) -> str:
             }}
             QCheckBox::indicator:unchecked {{
                 background-color: rgba(255, 255, 255, 0.8);
-                border: 1px solid {colors['border']};
+                border: 1px solid {colors.get('border')};
                 border-radius: 3px;
             }}
             QCheckBox::indicator:checked {{
-                background-color: {colors['primary']};
-                border: 1px solid {colors['border']};
+                background-color: {colors.get('primary')};
+                border: 1px solid {colors.get('border')};
                 border-radius: 3px;
             }}
             QComboBox {{
                 background-color: rgba(255, 255, 255, 0.8);
-                border: 1px solid {colors['border']};
+                border: 1px solid {colors.get('border')};
                 border-radius: 5px;
                 padding: 5px;
-                color: {colors['text']};
+                color: {colors.get('text')};
             }}
             QComboBox::drop-down {{
                 border: none;
@@ -136,7 +136,7 @@ def generate_full_css(colors: StyleSheetParam) -> str:
                 image: none;
                 border-left: 5px solid transparent;
                 border-right: 5px solid transparent;
-                border-top: 5px solid {colors['primary']};
+                border-top: 5px solid {colors.get('primary')};
                 margin-right: 5px;
             }}
         """

@@ -1,22 +1,24 @@
 {
-  "WINDOW": {
-    "WINDOW_WIDTH": 200,
-    "WINDOW_HEIGHT": 200
+  "Window": {
+    "Width": 200,
+    "Height": 200
   },
-  "ANIMATION": {
-    "ANIMATION_FPS": 30
+  "Animation": {
+    "FPS": 30
   },
-  "RANDOM": {
-    "RANDOM_INTERVAL": 5
+  "Random": {
+    "Interval": 5
   },
-  "INFO": {
-    "SHOW_INFO": true
+  "Info": {
+    "ShowInfo": true
   },
-  "THEME": {
-    "DEFAULT_THEME": "粉色主题"
+  "Theme": {
+    "DefaultTheme": "粉色主题"
   },
-  "TRAY": {},
-  "WORKSPACE": {
-    "ALLOW_RANDOM_MOVEMENT": true
+  "Workspace": {
+    "AllowRandomMovement": true
+  },
+  "Hunger": {
+    "Rate": 1
   }
 }

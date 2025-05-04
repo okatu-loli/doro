@@ -11,10 +11,13 @@ REFL_MAP = {
 
 def replace_map(iterable: Dict[Any, Any]) -> None:
     for key, value in iterable.items():
-        if hasattr(value, "__iter__") and not isinstance(value, str):
-            replace_map(value)
-        elif isinstance(value, str):
+        if isinstance(value, str):
             for ref_key, ref_value in REFL_MAP.items():
-                if ref_key in value:
-                    iterable[key] = value.replace("{" + ref_key + "}", ref_value)
-                    break
+                if f"{{{ref_key}}}" in value:
+                    iterable[key] = value.replace(f"{{{ref_key}}}", ref_value)
+        elif hasattr(value, "__iter__"):
+            replace_map(value)
+        elif isinstance(value, (int, float, bool)):
+            pass
+        else:
+            raise TypeError(f"Unsupported type: {type(value)}")

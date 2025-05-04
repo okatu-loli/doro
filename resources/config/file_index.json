@@ -1,14 +1,28 @@
 {
-  "DEFAULT_CONFIG": {
-    "RELATIVE_PATH": "resources/config/default_config.json"
+  "DefaultConfig": {
+    "RelativePath": "resources/config/default_config.json"
   },
-  "CONFIG": {
-    "RELATIVE_PATH": "resources/config/config.json"
+  "Config": {
+    "RelativePath": "resources/config/config.json"
   },
-  "THEME": {
-    "RELATIVE_PATH": "resources/config/theme.json"
+  "Theme": {
+    "RelativePath": "resources/config/theme.json"
   },
-  "ICON": {
-    "PROJECT_ROOT": "{PROJECT_PATH}/resources/favicon.ico"
+  "Icon": {
+    "RelativePath": "{PROJECT_ROOT}/resources/icons/favicon.ico"
+  },
+  "Resources": {
+    "Music": {
+      "RelativePath": "resources/music/"
+    },
+    "Gif": {
+      "RelativePath": "resources/doro/",
+      "Click": "resources/doro/click/",
+      "Common": "resources/doro/common/",
+      "Darg": "resources/doro/darg/",
+      "Eat": "resources/doro/eat/",
+      "Hungry": "resources/doro/hungry/",
+      "Move": "resources/doro/move/"
+    }
   }
 }
