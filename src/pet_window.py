@@ -1,11 +1,7 @@
 import os
-import random
-import time
-from typing import Dict, List
-
-import psutil
-from PySide6.QtCore import QRect, Qt, QTimer, QSize, QPoint, QUrl, QEvent
-from PySide6.QtGui import QMovie, QIcon, QAction, QMouseEvent, QTransform
+from typing import Dict, List, Optional
+from PySide6.QtCore import Qt, QTimer, QSize, QPoint, QUrl, QEvent, Signal
+from PySide6.QtGui import QMovie, QIcon, QTransform
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PySide6.QtWidgets import (
     QMainWindow,
@@ -13,25 +9,42 @@ from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
-    QMenu,
-    QMessageBox,
 )
 
+
+from .state import StateMachine, PetState
 from .config import Config
-from .style_sheet import (
-    generate_menu_css,
-    generate_pet_info_css,
-    generate_messagebox_css,
-)
-from .setting_gui import SettingsDialog
+from .style_sheet import generate_pet_info_css
 
 
 class PetWindow(QMainWindow):
+    """宠物主窗口类"""
+
+    config_changed = Signal(str)  # 配置改变信号
+
     def __init__(self, config: Config):
         super().__init__()
         self.config: Config = config
+        self.movie: Optional[QMovie] = None  # 当前动画
+        self.movie_cache: Dict[str, QMovie] = {}
 
-        # 设置窗口无边框、置顶和透明背景
+        # 初始化窗口属性
+        self._setup_window()
+        # 初始化UI组件
+        self._setup_ui()
+        # 加载资源
+        self._load_resources()
+        # 初始化音频
+        self._setup_audio()
+        # 初始化状态机
+        self._setup_state_machine()
+        # 立即播放初始动画
+        # 设置信息窗口可见性
+        self.set_info_visible()
+        self.state_machine.transition_to(PetState.NORMAL)
+
+    def _setup_window(self):
+        """设置窗口属性"""
         self.setWindowFlags(
             Qt.WindowType.FramelessWindowHint
             | Qt.WindowType.WindowStaysOnTopHint
@@ -39,20 +52,39 @@ class PetWindow(QMainWindow):
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
-        # 设置窗口图标（favicon.ico）
+        # 设置窗口图标
         icon_path = Config.PATH_CONFIG["Icon"]["RelativePath"]
         if os.path.exists(icon_path):
             self.setWindowIcon(QIcon(icon_path))
-        self.animation_timer = QTimer()
 
-        # 主窗口部件和布局
+    def _setup_ui(self):
+        """初始化UI组件"""
         self.main_widget = QWidget()
         self.setCentralWidget(self.main_widget)
-        self.main_layout = QHBoxLayout(self.main_widget)  # 水平布局
+        self.main_layout = QHBoxLayout(self.main_widget)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        # 信息显示部件（右侧）
+        # 动画标签
+        self.animation_label = QLabel()
+        self.animation_label.setFixedSize(
+            self.config.config["Window"]["Width"],
+            self.config.config["Window"]["Height"],
+        )
+        self.animation_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # 信息窗口
+        self._setup_info_widget()
+
+        # 添加组件到布局
+        self.main_layout.addWidget(self.animation_label)
+        self.main_layout.addWidget(self.info_widget)
+
+        # 更新窗口大小
+        self._update_window_size()
+
+    def _setup_info_widget(self):
+        """初始化信息窗口"""
         self.info_widget = QWidget()
         self.info_widget.setFixedSize(150, 100)
         self.info_layout = QVBoxLayout(self.info_widget)
@@ -63,206 +95,63 @@ class PetWindow(QMainWindow):
         self.cpu_label = QLabel("CPU: 0%")
         self.memory_label = QLabel("内存: 0%")
         self.network_label = QLabel("网速: 0 KB/s")
-        self.hunger_label = QLabel("饥饿值: 100")  # 新增饥饿值标签
+
         for label in [
             self.cpu_label,
             self.memory_label,
             self.network_label,
-            self.hunger_label,
         ]:
             self.info_layout.addWidget(label)
 
-        # 饥饿值机制
-        self.hunger = 100  # 初始饥饿值
-        self.hunger_timer = QTimer()
-        self.hunger_timer.timeout.connect(self.decrease_hunger)
-        self.hunger_timer.start(int(20000 / config.config["Hunger"]["Rate"]))
-        self.is_hungry_playing = False
+        self.update_theme()
 
-        # 动画显示标签（左侧）
-        self.animation_label = QLabel()
-        self.animation_label.setFixedSize(
-            config.config["Window"]["Width"],
-            config.config["Window"]["Height"],
+    def _load_resources(self):
+        """加载资源文件"""
+        base_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)), "resources", "doro"
         )
-        self.animation_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._load_gif_files(base_path)
 
-        # 将动画和信息部件添加到主布局
-        self.main_layout.addWidget(self.animation_label)
-        self.main_layout.addWidget(self.info_widget)
+        # 鼠标交互属性
+        self.setMouseTracking(True)
 
-        # 计算并设置窗口总大小
-        total_width = (
-            config.config["Window"]["Width"]
-            + self.info_widget.width()
-            + self.main_layout.spacing()
-        )
+        # 移动属性
+        self.is_moving = False
+        self.move_direction: Optional[str] = None
+        self.move_speed = 3
+        self.move_duration = 0
+        self.move_timer = QTimer()
+        self.move_timer.timeout.connect(self.move_pet)
 
-        total_height = config.config["Window"]["Height"]
-        self.setFixedSize(total_width, total_height)
+        # 屏幕几何信息
+        self.screen_geometry = self.screen().availableGeometry()
+
+    def _setup_audio(self):
+        """初始化音频系统"""
+        self.audio_player = QMediaPlayer()
+        self.audio_output = QAudioOutput()
+        self.audio_player.setAudioOutput(self.audio_output)
 
         music_path = os.path.join(
             os.path.dirname(os.path.dirname(__file__)), "resources", "music"
         )
-
-        # 动画资源路径
-        base_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), "resources", "doro"
-        )
-        self.load_gif_files(base_path)
-
         self.click_mp3_path = os.path.join(music_path, "music.mp3")
-        self.current_state = "normal"
-
-        # 动画缓存
-        self.gif_cache: Dict[str, QMovie] = {}
-
-        # 音频播放器初始化
-        self.audio_player = QMediaPlayer()
-        self.audio_output = QAudioOutput()
-        self.audio_player.setAudioOutput(self.audio_output)
 
         if os.path.exists(self.click_mp3_path):
             self.audio_player.setSource(QUrl.fromLocalFile(self.click_mp3_path))
             self.audio_player.stop()
 
-        # 加载初始动画
-        self.load_gif_animation()
+    def _setup_state_machine(self):
+        """初始化状态机"""
+        self.state_machine = StateMachine(self)
 
-        # 网络监控初始化
-        self.last_net_io = psutil.net_io_counters()
-        self.last_net_time = time.time()
+        self.state_machine.ui_components["cpu_label"] = self.cpu_label
+        self.state_machine.ui_components["memory_label"] = self.memory_label
+        self.state_machine.ui_components["network_label"] = self.network_label
 
-        # 系统监控定时器
-        self.monitor_timer = QTimer()
-        self.monitor_timer.timeout.connect(self.update_system_info)
-        self.monitor_timer.start(2000)
-
-        # 鼠标交互相关设置
-        self.setMouseTracking(True)
-        self.old_pos = None
-        self.is_dragging = False
-        self.info_visible = True
-
-        # Doro移动相关设置
-        self.is_moving = False
-        self.move_direction = None
-        self.move_speed = 3
-        self.move_timer = QTimer()
-        self.move_timer.timeout.connect(self.move_pet)
-
-        # 随机移动定时器
-        self.random_move_timer = QTimer()
-        self.random_move_timer.timeout.connect(self.start_random_movement)
-        # 根据配置决定是否启动随机移动
-        if self.config.config["Workspace"]["AllowRandomMovement"]:
-            self.random_move_timer.start(
-                self.config.config["Random"]["Interval"] * 1000
-            )
-
-        # 屏幕几何信息
-        self.screen_geometry: QRect = self.screen().availableGeometry()
-
-        # 应用主题
-        self.update_theme()
-
-    # 新增方法：显示关于信息
-    def show_about_info(self):
-        """显示关于Doro的信息弹窗"""
-        about_text = """Doro 桌宠使用指南
-
-人，你来啦
-
-
-1. 基本交互
-   - 拖动: 按住左键拖动动画区域。
-   - 双击: 双击动画区域播放特殊动画。
-   - 右键菜单: 点击动画区域弹出菜单。
-     - 喂食哦润吉 🍊: 恢复饥饿值。
-     - 关于Doro: 显示此指南。
-
-2. 主要功能
-   - 动画: 多种状态动画。
-   - 随机移动: 不时在屏幕上走动。
-   - 系统信息: 显示 CPU、内存、网速。
-   - 主题: 可在设置中更改。
-
-3. 系统托盘图标
-   - 右键点击托盘图标可进行显示/隐藏、设置、关闭等操作。
-
-        """
-        # 使用 QMessageBox 显示纯文本信息
-        msg_box = QMessageBox(self)
-        msg_box.setWindowTitle("关于 Doro 宠物")
-        msg_box.setText(about_text)
-        # 可选：设置图标
-        icon_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), "resources", "favicon.ico"
-        )
-        if os.path.exists(icon_path):
-            msg_box.setWindowIcon(QIcon(icon_path))  # 为弹窗也设置图标
-        msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)  # 只显示“确定”按钮
-        msg_box.setStyleSheet(generate_messagebox_css())
-        msg_box.exec()  # 显示弹窗
-
-    def load_gif_animation(self):
-        """加载并播放随机普通状态GIF"""
-        self.play_random_normal_gif()
-
-    def play_gif(self, gif_path: str, mirror: bool = False):
-        """播放指定路径的GIF动画，可选水平镜像"""
-        if not os.path.exists(gif_path):
-            print(f"GIF文件不存在: {gif_path}")
-            return
-
-        # 停止当前动画
-        if hasattr(self, "movie") and self.movie:
-            self.movie.stop()
-            self.animation_label.clear()
-
-        # 创建新动画
-        movie = QMovie(gif_path)
-        movie.setScaledSize(
-            QSize(
-                self.config.config["Window"]["Width"],
-                self.config.config["Window"]["Height"],
-            )
-        )
-        self.movie: QMovie = movie
-
-        if mirror:
-            # 连接帧变化信号，实现逐帧镜像
-            def update_frame():
-                frame = self.movie.currentPixmap()
-                mirrored = frame.transformed(QTransform().scale(-1, 1))
-                self.animation_label.setPixmap(mirrored)
-
-            self.movie.frameChanged.connect(update_frame)
-            self.movie.start()
-        else:
-            self.animation_label.setMovie(self.movie)
-            self.movie.start()
-        self.movie.finished.connect(self.return_to_normal)
-
-        # 设置镜像效果
-        if mirror:
-            self.animation_label.setStyleSheet("transform: scaleX(-1);")
-        else:
-            self.animation_label.setStyleSheet("")
-
-    def play_random_normal_gif(self):
-        """播放随机普通状态GIF"""
-        if self.current_state != "normal":
-            return
-        gif_path = random.choice(self.normal_gif_paths)
-        self.play_gif(gif_path)
-
-    def set_info_visible(self, visible: bool):
-        """设置信息窗口可见性，并动态调整窗口大小"""
-        self.info_visible: bool = visible
-        self.info_widget.setVisible(visible)
-        # 动态调整窗口宽度，防止信息栏隐藏后动画被挤压
-        if visible:
+    def _update_window_size(self):
+        """更新窗口大小"""
+        if self.config.config["Info"]["ShowInfo"]:
             total_width = (
                 self.config.config["Window"]["Width"]
                 + self.info_widget.width()
@@ -273,104 +162,14 @@ class PetWindow(QMainWindow):
         total_height = self.config.config["Window"]["Height"]
         self.setFixedSize(total_width, total_height)
 
-    def decrease_hunger(self):
-        if self.hunger > 0:
-            self.hunger -= 1
-        self.hunger_label.setText(f"饥饿值: {self.hunger}")
-        if 30 > self.hunger >= 0 and not self.is_hungry_playing:
-            self.is_hungry_playing = True
-            self.play_gif(random.choice(self.hungry_gif_paths))
-            QTimer.singleShot(800, self.reset_hungry_flag)  # type: ignore[call-arg-type]
-
-    def reset_hungry_flag(self):
-        self.is_hungry_playing = False
-
-    def update_system_info(self):
-        """更新系统监控信息"""
-        if not self.info_visible:
-            return
-
-        # CPU使用率
-        cpu_usage = psutil.cpu_percent()
-
-        # 内存使用率
-        memory_usage = psutil.virtual_memory().percent
-
-        # 网络速度计算
-        current_net_io = psutil.net_io_counters()
-        current_time = time.time()
-        time_diff = current_time - self.last_net_time
-
-        if time_diff > 0:
-            bytes_sent = (
-                current_net_io.bytes_sent - self.last_net_io.bytes_sent
-            ) / time_diff
-            bytes_recv = (
-                current_net_io.bytes_recv - self.last_net_io.bytes_recv
-            ) / time_diff
-            total_speed = bytes_sent + bytes_recv
-
-            # 根据速度大小选择合适的单位
-            if total_speed < 1024 * 1024:
-                speed_str = f"{total_speed / 1024:.1f} KB/s"
-            else:
-                speed_str = f"{total_speed / (1024 * 1024):.1f} MB/s"
-
-            # 更新标签文本
-            self.cpu_label.setText(f"CPU: {cpu_usage}%")
-            self.memory_label.setText(f"内存: {memory_usage}%")
-            self.network_label.setText(f"网速: {speed_str}")
-
-            # 保存当前网络状态
-            self.last_net_io = current_net_io
-            self.last_net_time = current_time
-
-    def update_theme(self):
-        """更新主题颜色"""
-        colors = self.config.get_theme_colors()
-
-        # 设置信息窗口样式
-        self.info_widget.setStyleSheet(generate_pet_info_css(colors))
-        self.info_widget.setObjectName("PetInfoWindowInfoWidget")
-
-    def start_random_movement(self):
-        """启动随机移动"""
-        if (
-            not self.is_moving
-            and not self.is_dragging
-            and random.random() < 0.1
-            and self.config.config["Workspace"]["AllowRandomMovement"]
-        ):
-            delay = random.randint(5000, 5000)  # 减少移动频率
-            QTimer.singleShot(delay, self.prepare_movement)  # type: ignore[call-arg-type]
-
-    def prepare_movement(self):
-        """准备移动动画和方向，自动适配 GIF 方向"""
-        if self.is_dragging:
-            return
-
-        self.current_state = "move"
-        self.move_direction = random.choice(["left", "right", "up", "down"])
-        move_gif = random.choice(self.move_gif_paths)
-
-        # 右移时镜像
-        mirror = self.move_direction == "right"
-        self.play_gif(move_gif, mirror=mirror)
-
-        self.move_duration = random.randint(5000, 10000)
-        self.is_moving = True
-        self.move_timer.start(50)
-        QTimer.singleShot(self.move_duration, self.stop_movement)  # type: ignore[call-arg-type]
-
     def move_pet(self):
-        """执行Doro移动"""
-        if not self.is_moving:
+        """移动宠物"""
+        if not self.is_moving or not self.move_direction:
             return
 
         current_pos = self.pos()
         new_pos = current_pos
 
-        # 根据方向移动并处理屏幕边界
         if self.move_direction == "left":
             new_pos += QPoint(-self.move_speed, 0)
             if new_pos.x() < self.screen_geometry.left():
@@ -390,158 +189,40 @@ class PetWindow(QMainWindow):
 
         self.move(new_pos)
 
-    def stop_movement(self):
-        """停止移动"""
-        if self.is_moving:
-            self.is_moving = False
-            self.move_timer.stop()
-            self.return_to_normal()
-
-    def return_to_normal(self):
-        """返回普通状态"""
-        self.movie.stop()
-        self.current_state = "normal"
-        self.play_random_normal_gif()
-
-    def show_settings(self):
-        """显示设置对话框"""
-        dialog = SettingsDialog(self.config, self)
-        dialog.exec()
-
-    def mousePressEvent(self, event: QMouseEvent):
-        """鼠标按下事件处理（用于拖动窗口和弹出菜单）"""
-        if event.button() == Qt.MouseButton.LeftButton:
-            # 检查是否点击在动画区域
-            if self.animation_label.geometry().contains(event.position().toPoint()):
-                self.old_pos = event.globalPosition().toPoint()
-                self.is_dragging = True
-                self.monitor_timer.stop()
-                self.stop_movement()
-                # 拖动时切换为 drag.gif
-                self.current_state = "drag"
-                self.play_gif(self.drag_gif_path)
-            else:
-                super().mousePressEvent(event)
-        elif event.button() == Qt.MouseButton.RightButton:
-            # 检查是否点击在动画区域
-            if self.animation_label.geometry().contains(event.position().toPoint()):
-                # 弹出美观菜单
-                menu = QMenu(self)
-                # 可选：为菜单设置样式
-                menu.setStyleSheet(generate_menu_css())
-                feed_action = QAction("喂食哦润吉 🍊", self)
-                feed_action.triggered.connect(self.feed_pet)
-                menu.addAction(feed_action)
-                # 可选：添加分隔线和更多选项
-                menu.addSeparator()
-                info_action = QAction("关于Doro", self)
-                info_action.triggered.connect(
-                    self.show_about_info
-                )  # 连接到更新后的方法
-                menu.addAction(info_action)
-                # 新增：设置菜单项
-                settings_action = QAction("设置", self)
-                settings_action.triggered.connect(self.show_settings)
-                menu.addAction(settings_action)
-                # 弹出菜单
-                menu.exec(event.globalPosition().toPoint())  # type: ignore[misc, overload-cannot-match]
-            else:
-                super().mousePressEvent(event)
-        else:
-            super().mousePressEvent(event)
-
-    def feed_pet(self):
-        """喂食Doro，恢复饱食度并播放吃饭动画"""
-        self.current_state = "eat"
-        self.play_gif(self.eat_gif_path)
-        QTimer.singleShot(5000, self.return_to_normal)  # type: ignore[call-arg-type]
-        self.hunger = min(self.hunger + 40, 100)
-        self.hunger_label.setText(f"饥饿值: {self.hunger}")
-
-    def mouseMoveEvent(self, event: QMouseEvent):
-        """鼠标移动事件处理（拖动窗口）"""
-        if self.old_pos and self.is_dragging:
-            delta = event.globalPosition().toPoint() - self.old_pos
-            self.move(self.pos() + delta)
-            self.old_pos = event.globalPosition().toPoint()
-        super().mouseMoveEvent(event)
-
-    def mouseReleaseEvent(self, event: QMouseEvent):
-        """鼠标释放事件处理"""
-        if event.button() == Qt.MouseButton.LeftButton and self.is_dragging:
-            self.old_pos = None
-            self.is_dragging = False
-            self.monitor_timer.start(2000)
-            QTimer.singleShot(3000, self.start_random_movement)  # type: ignore[call-arg-type]
-            # 拖动结束恢复普通动画
-            self.return_to_normal()
-        else:
-            super().mouseReleaseEvent(event)
-
-    def mouseDoubleClickEvent(self, event: QMouseEvent):
-        """鼠标双击事件处理（播放特殊动画或音效）"""
-        if event.button() != Qt.MouseButton.LeftButton:
-            super().mouseDoubleClickEvent(event)
-            return
-        if not self.animation_label.geometry().contains(event.position().toPoint()):
-            super().mouseDoubleClickEvent(event)
-            return
-
-        # 播放点击动画和音效
-        self.current_state = "click"
-        self.play_gif(self.click_gif_path)
-        if os.path.exists(self.click_mp3_path):
-            self.audio_player.setSource(QUrl.fromLocalFile(self.click_mp3_path))
-            self.audio_player.play()
-        # 动画播放完后恢复普通状态
-        QTimer.singleShot(18000, self.return_to_normal)  # type: ignore[call-arg-type]
-
-    def closeEvent(self, event: QEvent):
-        """窗口关闭时清理资源"""
-        # 停止所有动画
-        if hasattr(self, "movie"):
-            self.movie.stop()
-            self.movie.deleteLater()
-
-        # 停止所有定时器
-        self.monitor_timer.stop()
-        self.random_move_timer.stop()
-        self.move_timer.stop()
-
-        # 清理音频资源
-        if hasattr(self, "audio_player"):
-            self.audio_player.stop()
-            self.audio_player.deleteLater()
-        if hasattr(self, "audio_output"):
-            self.audio_output.deleteLater()
-
-        # 清空缓存
-        for movie in self.gif_cache.values():
-            movie.stop()
-            movie.deleteLater()
-        self.gif_cache.clear()
-
-        event.accept()
-
-    def load_gif_files(self, base_path: str):
-        """加载指定路径下的所有GIF文件"""
+    def _load_gif_files(self, base_path: str):
+        """加载GIF文件"""
         if not os.path.exists(base_path):
             print(f"路径不存在: {base_path}")
             return
 
-        self.normal_gif_paths = self.load_gif_from_folder(
+        self.normal_gif_paths = self._load_gif_from_folder(
             os.path.join(base_path, "common")
         )
-        self.hungry_gif_paths = self.load_gif_from_folder(
+        self.hungry_gif_paths = self._load_gif_from_folder(
             os.path.join(base_path, "hungry")
         )
-        self.move_gif_paths = self.load_gif_from_folder(os.path.join(base_path, "move"))
+        self.move_gif_paths = self._load_gif_from_folder(
+            os.path.join(base_path, "move")
+        )
         self.click_gif_path = os.path.join(base_path, "click", "click.gif")
         self.eat_gif_path = os.path.join(base_path, "eat", "eat.gif")
         self.drag_gif_path = os.path.join(base_path, "drag", "drag.gif")
 
-    def load_gif_from_folder(self, folder_path: str) -> List[str]:
-        """从指定文件夹加载所有GIF文件"""
+        for gif_path in (
+            [
+                self.click_gif_path,
+                self.eat_gif_path,
+                self.drag_gif_path,
+            ]
+            + self.normal_gif_paths
+            + self.hungry_gif_paths
+            + self.move_gif_paths
+        ):
+            self.movie_cache[gif_path] = QMovie(gif_path)
+            self.movie_cache[gif_path].stop()
+
+    def _load_gif_from_folder(self, folder_path: str) -> List[str]:
+        """从文件夹加载GIF文件"""
         if not os.path.exists(folder_path):
             print(f"路径不存在: {folder_path}")
             return []
@@ -550,3 +231,82 @@ class PetWindow(QMainWindow):
             for f in os.listdir(folder_path)
             if f.endswith(".gif")
         ]
+
+    # ========== 公共方法 ==========
+    def play_gif(self, gif_path: str, mirror: bool = False):
+        """播放GIF动画"""
+        if not os.path.exists(gif_path):
+            print(f"GIF文件不存在: {gif_path}")
+            return
+
+        if self.movie:
+            self.movie.stop()
+            self.animation_label.clear()
+
+        movie = self.movie_cache.get(gif_path, QMovie(gif_path))
+        movie.setScaledSize(
+            QSize(
+                self.config.config["Window"]["Width"],
+                self.config.config["Window"]["Height"],
+            )
+        )
+        self.movie = movie
+
+        if mirror:
+            # 连接帧变化信号，实现逐帧镜像
+            def update_frame():
+                if not self.movie:
+                    return
+                frame = self.movie.currentPixmap()
+                mirrored = frame.transformed(QTransform().scale(-1, 1))
+                self.animation_label.setPixmap(mirrored)
+
+            self.movie.frameChanged.connect(update_frame)
+            self.movie.start()
+        else:
+            self.animation_label.setMovie(self.movie)
+            self.movie.start()
+
+    def set_info_visible(self):
+        """设置信息窗口可见性"""
+        self.info_widget.setVisible(self.config.config["Info"]["ShowInfo"])
+        self._update_window_size()
+
+    def update_theme(self):
+        """更新主题颜色"""
+        colors = self.config.get_theme_colors()
+
+        # 设置信息窗口样式
+        self.info_widget.setStyleSheet(generate_pet_info_css(colors))
+        self.info_widget.setObjectName("PetInfoWindowInfoWidget")
+
+    def update_config(self):
+        """更新配置"""
+        # 更新信息框显示状态
+        self.set_info_visible()
+
+        # 更新主题
+        self.update_theme()
+        self.state_machine.update_config()
+
+    # ========== 事件处理 ==========
+    def event(self, event: QEvent) -> bool:
+        """事件处理"""
+        if hasattr(self, "state_machine") and self.state_machine.handle_event(event):
+            return True
+        return super().event(event)
+
+    def closeEvent(self, event: QEvent):
+        """窗口关闭事件"""
+        if self.movie:
+            self.movie.stop()
+            self.movie.deleteLater()
+
+        if hasattr(self, "audio_player"):
+            self.audio_player.stop()
+            self.audio_player.deleteLater()
+        if hasattr(self, "audio_output"):
+            self.audio_output.deleteLater()
+
+        event.accept()
+        os._exit(0)

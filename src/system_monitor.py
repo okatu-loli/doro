@@ -9,7 +9,7 @@ class SystemMonitor:
 
     def get_cpu_usage(self):
         """获取CPU使用率"""
-        return psutil.cpu_percent(interval=1)
+        return psutil.cpu_percent()
 
     def get_memory_usage(self):
         """获取内存使用率"""

@@ -72,12 +72,6 @@ class SettingsDialog(QDialog):
         size_layout.addWidget(self.height_spin)
         form_layout.addRow("宠物大小:", size_layout)
 
-        # 帧率设置
-        self.fps_spin = QSpinBox()
-        self.fps_spin.setRange(1, 60)
-        self.fps_spin.setValue(config.config["Animation"]["FPS"])
-        form_layout.addRow("动画帧率 (FPS):", self.fps_spin)
-
         # 随机切换时间设置
         self.random_interval_spin = QSpinBox()
         self.random_interval_spin.setRange(1, 60)
@@ -138,9 +132,8 @@ class SettingsDialog(QDialog):
     def save_settings(self):
         """保存设置"""
         # 更新配置
-        self.config.get("Window")["WINDOW_WIDTH"] = self.width_spin.value()
-        self.config.get("Window")["WINDOW_HEIGHT"] = self.height_spin.value()
-        self.config.get("Animation")["FPS"] = self.fps_spin.value()
+        self.config.get("Window")["Width"] = self.width_spin.value()
+        self.config.get("Window")["Height"] = self.height_spin.value()
         self.config.get("Theme")["DefaultTheme"] = self.theme_combo.currentText()
         self.config.get("Random")["Interval"] = self.random_interval_spin.value()
         self.config.get("Hunger")["Rate"] = self.hunger_rate_spin.value()
@@ -159,28 +152,16 @@ class SettingsDialog(QDialog):
             self.config.config["Window"]["Height"],
         )
 
-        # 更新动画帧率
-        parent_window.animation_timer.setInterval(
-            1000 // self.config.config["Animation"]["FPS"]
-        )
-
-        # 更新随机切换间隔
-        parent_window.random_move_timer.setInterval(
-            self.config.config["Random"]["Interval"] * 1000
-        )
-
-        # 更新信息框显示状态
-        parent_window.set_info_visible(self.config.config["Info"]["ShowInfo"])
-
-        # 更新饥饿值倍率
-        self.config.get("Hunger")["Rate"] = self.hunger_rate_spin.value()
+        # # 更新随机切换间隔
+        # parent_window.random_move_timer.setInterval(
+        #     self.config.config["Random"]["Interval"] * 1000
+        # )
 
         # 更新对话功能状态
         # TODO: 这里原版本里是有这个的, 但似乎并未实现(NotImplemented)
         # parent_window.set_chat_enabled(self.config.enable_chat)
 
-        # 更新主题
-        parent_window.update_theme()
+        parent_window.update_config()
 
         # 显示保存成功提示
         QMessageBox.information(self, "提示", "设置已保存！")
