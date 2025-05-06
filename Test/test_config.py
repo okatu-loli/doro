@@ -1,7 +1,7 @@
+import os
 import unittest
 
 from src.config import Config
-import os
 
 
 class TestConfig(unittest.TestCase):
@@ -10,10 +10,7 @@ class TestConfig(unittest.TestCase):
         config_path = "resources/config/config.json"
         if os.path.exists(config_path):
             os.remove(config_path)
-
         self.config: Config = Config()
-        self.config.save()
-        self.config = Config()
 
     def test_default_values(self):
         """Test default values in the config
@@ -40,3 +37,7 @@ class TestConfig(unittest.TestCase):
         config_path = "resources/config/config.json"
         if os.path.exists(config_path):
             os.remove(config_path)
+
+
+if __name__ == "__main__":
+    unittest.main()
