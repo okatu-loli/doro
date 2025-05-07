@@ -8,10 +8,9 @@ class ClickedStateHandler(StateHandler):
     """点击状态处理器"""
 
     def _init_state(self):
-        self.pet_window.audio_player.setSource(
-            QUrl.fromLocalFile(self.pet_window.click_mp3_path)
-        )
-        self.pet_window.audio_player.stop()
+        self.click_end_timer = QTimer()
+        self.click_end_timer.setSingleShot(True)
+        self.click_end_timer.timeout.connect(self._on_click_end)
         return super()._init_state()
 
     def on_enter(self):
@@ -21,9 +20,10 @@ class ClickedStateHandler(StateHandler):
                 QUrl.fromLocalFile(self.pet_window.click_mp3_path)
             )
             self.pet_window.audio_player.play()
-        QTimer.singleShot(18000, self._on_click_end)  # type: ignore[call-arg-type]
+            self.click_end_timer.start(18000)
 
     def on_exit(self):
+        self.click_end_timer.stop()
         self.pet_window.audio_player.stop()
         return False
 
@@ -44,4 +44,5 @@ class ClickedStateHandler(StateHandler):
 
     def _on_click_end(self):
         """点击动画结束"""
-        self.state_machine.pop_state()
+        if self.state_machine.current_state == PetState.CLICKED:
+            self.state_machine.pop_state()

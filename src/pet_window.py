@@ -1,6 +1,6 @@
 import os
 from typing import Dict, List, Optional
-from PySide6.QtCore import Qt, QTimer, QSize, QPoint, QUrl, QEvent, Signal
+from PySide6.QtCore import Qt, QSize, QUrl, QEvent, Signal
 from PySide6.QtGui import QMovie, QIcon, QTransform
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PySide6.QtWidgets import (
@@ -115,14 +115,6 @@ class PetWindow(QMainWindow):
         # 鼠标交互属性
         self.setMouseTracking(True)
 
-        # 移动属性
-        self.is_moving = False
-        self.move_direction: Optional[str] = None
-        self.move_speed = 3
-        self.move_duration = 0
-        self.move_timer = QTimer()
-        self.move_timer.timeout.connect(self.move_pet)
-
         # 屏幕几何信息
         self.screen_geometry = self.screen().availableGeometry()
 
@@ -161,33 +153,6 @@ class PetWindow(QMainWindow):
             total_width = self.config.config["Window"]["Width"]
         total_height = self.config.config["Window"]["Height"]
         self.setFixedSize(total_width, total_height)
-
-    def move_pet(self):
-        """移动宠物"""
-        if not self.is_moving or not self.move_direction:
-            return
-
-        current_pos = self.pos()
-        new_pos = current_pos
-
-        if self.move_direction == "left":
-            new_pos += QPoint(-self.move_speed, 0)
-            if new_pos.x() < self.screen_geometry.left():
-                self.move_direction = "right"
-        elif self.move_direction == "right":
-            new_pos += QPoint(self.move_speed, 0)
-            if new_pos.x() > self.screen_geometry.right() - self.width():
-                self.move_direction = "left"
-        elif self.move_direction == "up":
-            new_pos += QPoint(0, -self.move_speed)
-            if new_pos.y() < self.screen_geometry.top():
-                self.move_direction = "down"
-        elif self.move_direction == "down":
-            new_pos += QPoint(0, self.move_speed)
-            if new_pos.y() > self.screen_geometry.bottom() - self.height():
-                self.move_direction = "up"
-
-        self.move(new_pos)
 
     def _load_gif_files(self, base_path: str):
         """加载GIF文件"""
