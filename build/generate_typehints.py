@@ -58,9 +58,8 @@ def generate_typeddict(
     formatted_class_name = format_name(class_name)
     typeddict: str = f"class {formatted_class_name}Param(TypedDict):\n"
     class_name_list.append(f"{formatted_class_name}Param")
-    class_literals.append(
-        f"{formatted_class_name}Literal = Literal[{', '.join([f'\"{k}\"' for k in class_dict.keys()])}]"
-    )
+    literal_values = ", ".join(f'"{k}"' for k in class_dict.keys())
+    class_literals.append(f"{formatted_class_name}Literal = Literal[{literal_values}]")
     literal_name_list.append(f"{formatted_class_name}Literal")
     child_class_names: List[str] = []
     for key, value in class_dict.items():
