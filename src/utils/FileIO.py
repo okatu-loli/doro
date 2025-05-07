@@ -11,8 +11,7 @@ def json_load(file_path: str, replace: bool = True) -> Any:
             if replace:
                 replace_map(data)
             return data
-    except Exception as e:
-        print(f"Error loading JSON: {e}")
+    except Exception:
         return None
 
 
