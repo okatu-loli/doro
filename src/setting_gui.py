@@ -139,7 +139,7 @@ class SettingsDialog(QDialog):
         self.config.get("Hunger")["Rate"] = self.hunger_rate_spin.value()
         self.config.get("Info")["ShowInfo"] = self.show_info_checkbox.isChecked()
         self.config.get("Workspace")[
-            "ALLOW_RANDOM_MOVEMENT"
+            "AllowRandomMovement"
         ] = self.allow_random_movement_checkbox.isChecked()
         # 保存到环境变量文件
         self.config.save()
