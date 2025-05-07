@@ -132,13 +132,13 @@ class SettingsDialog(QDialog):
     def save_settings(self):
         """保存设置"""
         # 更新配置
-        self.config.get("Window")["Width"] = self.width_spin.value()
-        self.config.get("Window")["Height"] = self.height_spin.value()
-        self.config.get("Theme")["DefaultTheme"] = self.theme_combo.currentText()
-        self.config.get("Random")["Interval"] = self.random_interval_spin.value()
-        self.config.get("Hunger")["Rate"] = self.hunger_rate_spin.value()
-        self.config.get("Info")["ShowInfo"] = self.show_info_checkbox.isChecked()
-        self.config.get("Workspace")[
+        self.config.config["Window"]["Width"] = self.width_spin.value()
+        self.config.config["Window"]["Height"] = self.height_spin.value()
+        self.config.config["Theme"]["DefaultTheme"] = self.theme_combo.currentText()
+        self.config.config["Random"]["Interval"] = self.random_interval_spin.value()
+        self.config.config["Hunger"]["Rate"] = self.hunger_rate_spin.value()
+        self.config.config["Info"]["ShowInfo"] = self.show_info_checkbox.isChecked()
+        self.config.config["Workspace"][
             "AllowRandomMovement"
         ] = self.allow_random_movement_checkbox.isChecked()
         # 保存到环境变量文件

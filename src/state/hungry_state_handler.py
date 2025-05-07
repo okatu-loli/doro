@@ -27,7 +27,6 @@ class HungryStateHandler(StateHandler):
         return 30 > self.hunger_number >= 0
 
     def on_enter(self):
-        print(self.state_machine.state_stack)
         if not self.is_hunger():
             return False
         elif self.state_machine.state_stack[-1] == PetState.DRAGGING:

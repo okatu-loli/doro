@@ -13,17 +13,12 @@ class MovingStateHandler(StateHandler):
         self.random_move_timer.timeout.connect(self.start_random_movement)
         # 根据配置决定是否启动随机移动
         if self.pet_window.config.config["Workspace"]["AllowRandomMovement"]:
-            print(
-                "启动随机移动",
-                self.pet_window.config.config["Random"]["Interval"] * 1000,
-            )
             self.random_move_timer.start(
                 self.pet_window.config.config["Random"]["Interval"] * 1000
             )
         return super()._init_state()
 
     def on_enter(self):
-        print("进来了")
         if not self.check_can_random_move():
             return False
         self.prepare_movement()

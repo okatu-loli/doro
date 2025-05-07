@@ -94,7 +94,6 @@ class StateMachine:
 
     def transition_to(self, new_state: PetState, is_pop: bool = False):
         """状态转换"""
-        print(f"{self.current_state=}, {new_state=}")
         if self.current_state == new_state:
             return
 
@@ -119,15 +118,12 @@ class StateMachine:
 
         # 进入新状态
         if new_state not in self.state_handlers:
-            print("状态不存在:", new_state)
             return
         res = self.state_handlers[new_state].on_enter()
         self.current_state = new_state
 
         if res is False:
             self.pop_state()
-
-        print(f"{self.state_stack=}")
 
     def pop_state(self):
         """从堆栈弹出上一个状态"""
