@@ -92,7 +92,6 @@ class StateHandler(ABC):
         if isinstance(event, QMouseEvent):
             if event.type() == QEvent.Type.MouseButtonPress:
                 if event.button() == Qt.MouseButton.RightButton:
-                    print("默认事件处理")
                     menu = self.create_base_context_menu()
                     menu.exec(event.globalPosition().toPoint())  # type: ignore[call-arg-type]
                     return True
