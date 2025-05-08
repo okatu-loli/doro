@@ -125,9 +125,12 @@ class PetWindow(QMainWindow):
         self.audio_player.setAudioOutput(self.audio_output)
 
         music_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), "resources", "music"
+            os.path.dirname(os.path.dirname(__file__)),
+            "resources",
+            "music",
+            "DoubleClick",
         )
-        self.click_mp3_path = os.path.join(music_path, "music.mp3")
+        self.click_mp3_path = os.path.join(music_path, "music1.mp3")
 
         if os.path.exists(self.click_mp3_path):
             self.audio_player.setSource(QUrl.fromLocalFile(self.click_mp3_path))
@@ -161,17 +164,17 @@ class PetWindow(QMainWindow):
             return
 
         self.normal_gif_paths = self._load_gif_from_folder(
-            os.path.join(base_path, "common")
+            os.path.join(base_path, "Common")
         )
         self.hungry_gif_paths = self._load_gif_from_folder(
-            os.path.join(base_path, "hungry")
+            os.path.join(base_path, "Hungry")
         )
         self.move_gif_paths = self._load_gif_from_folder(
-            os.path.join(base_path, "move")
+            os.path.join(base_path, "Move")
         )
-        self.click_gif_path = os.path.join(base_path, "click", "click.gif")
-        self.eat_gif_path = os.path.join(base_path, "eat", "eat.gif")
-        self.drag_gif_path = os.path.join(base_path, "drag", "drag.gif")
+        self.click_gif_path = os.path.join(base_path, "Click", "click1.gif")
+        self.eat_gif_path = os.path.join(base_path, "Eat", "eat1.gif")
+        self.drag_gif_path = os.path.join(base_path, "Drag", "drag1.gif")
 
         for gif_path in (
             [

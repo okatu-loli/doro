@@ -13,16 +13,16 @@
   },
   "Resources": {
     "Music": {
-      "RelativePath": "resources/music/"
+      "DoubleClick": "resources/music/DoubleClick"
     },
     "Gif": {
       "RelativePath": "resources/doro/",
-      "Click": "resources/doro/click/",
-      "Common": "resources/doro/common/",
-      "Darg": "resources/doro/darg/",
-      "Eat": "resources/doro/eat/",
-      "Hungry": "resources/doro/hungry/",
-      "Move": "resources/doro/move/"
+      "Click": "resources/doro/Click/",
+      "Common": "resources/doro/Common/",
+      "Drag": "resources/doro/Drag/",
+      "Eat": "resources/doro/Eat/",
+      "Hungry": "resources/doro/Hungry/",
+      "Move": "resources/doro/Move/"
     }
   }
 }

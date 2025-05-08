@@ -2,9 +2,13 @@
 from . import ConfigHint
 from . import FileIndexHint
 from . import ThemeHint
+from . import GifHint
+from . import MusicHint
 
 __all__ = [
     "ConfigHint",
     "FileIndexHint",
     "ThemeHint",
+    "GifHint",
+    "MusicHint",
 ]
