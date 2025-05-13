@@ -4,6 +4,8 @@
 doro/
 ├── build/               # 构建脚本和工具
 │   └── generate_typehints.py  # 自动生成类型提示的脚本
+│   ├── format_files.py  # 格式化文件的脚本
+│   ├── build_all.py  # 运行所有构建脚本的脚本
 ├── doc/                 # 项目文档
 │   ├── development/     # 开发相关文档
 │   │   ├── Development.MD  # 开发文档

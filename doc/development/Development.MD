@@ -9,7 +9,7 @@ Doro 是一个桌面宠物应用，提供丰富的交互功能，包括动画展
 1. 克隆项目代码：
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/IMUTshuaiwei/doro
    ```
 
 2. 进入项目目录：
