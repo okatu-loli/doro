@@ -13,9 +13,9 @@ class MovingStateHandler(StateHandler):
         self.random_start_timer = QTimer()
         self.random_start_timer.timeout.connect(self.start_random_movement)
         # 根据配置决定是否启动随机移动
-        if self.pet_window.config.config["Workspace"]["AllowRandomMovement"]:
+        if self.main_layer.config.config["Workspace"]["AllowRandomMovement"]:
             self.random_start_timer.start(
-                self.pet_window.config.config["Random"]["Interval"] * 1000
+                self.main_layer.config.config["Random"]["Interval"] * 1000
             )
 
         # 移动计时器
@@ -56,7 +56,7 @@ class MovingStateHandler(StateHandler):
     def update_config(self):
         self.random_start_timer.stop()
         self.random_start_timer.start(
-            self.pet_window.config.config["Random"]["Interval"] * 1000
+            int(self.main_layer.config.config["Random"]["Interval"] * 1000)
         )
         if self.state_machine.current_state == PetState.MOVING:
             self.state_machine.pop_state()
@@ -66,7 +66,7 @@ class MovingStateHandler(StateHandler):
         """检查是否可以随机移动"""
         return (
             self.state_machine.current_state in [PetState.NORMAL]
-            and self.pet_window.config.config["Workspace"]["AllowRandomMovement"]
+            and self.main_layer.config.config["Workspace"]["AllowRandomMovement"]
         )
 
     def start_random_movement(self):
@@ -81,11 +81,11 @@ class MovingStateHandler(StateHandler):
     def prepare_movement(self):
         """准备移动动画和方向，自动适配 GIF 方向"""
         self.move_direction = random.choice(["left", "right", "up", "down"])
-        move_gif = random.choice(self.pet_window.move_gif_paths)
+        move_gif = random.choice(self.main_layer.resource_manager.get_gif("Move"))
 
         # 右移时镜像
         mirror = self.move_direction == "right"
-        self.pet_window.play_gif(move_gif, mirror=mirror)
+        self.main_layer.pet_window.play_gif(move_gif, mirror=mirror)
 
         move_duration = random.randint(5000, 10000)
         self.is_moving = True
@@ -102,30 +102,32 @@ class MovingStateHandler(StateHandler):
         if not self.move_direction:
             return
 
-        current_pos = self.pet_window.pos()
+        current_pos = self.main_layer.pet_window.pos()
         new_pos = current_pos
 
         if self.move_direction == "left":
             new_pos += QPoint(-self.move_speed, 0)
-            if new_pos.x() < self.pet_window.screen_geometry.left():
+            if new_pos.x() < self.main_layer.pet_window.screen_geometry.left():
                 self.move_direction = "right"
         elif self.move_direction == "right":
             new_pos += QPoint(self.move_speed, 0)
             if (
                 new_pos.x()
-                > self.pet_window.screen_geometry.right() - self.pet_window.width()
+                > self.main_layer.pet_window.screen_geometry.right()
+                - self.main_layer.pet_window.width()
             ):
                 self.move_direction = "left"
         elif self.move_direction == "up":
             new_pos += QPoint(0, -self.move_speed)
-            if new_pos.y() < self.pet_window.screen_geometry.top():
+            if new_pos.y() < self.main_layer.pet_window.screen_geometry.top():
                 self.move_direction = "down"
         elif self.move_direction == "down":
             new_pos += QPoint(0, self.move_speed)
             if (
                 new_pos.y()
-                > self.pet_window.screen_geometry.bottom() - self.pet_window.height()
+                > self.main_layer.pet_window.screen_geometry.bottom()
+                - self.main_layer.pet_window.height()
             ):
                 self.move_direction = "up"
 
-        self.pet_window.move(new_pos)
+        self.main_layer.pet_window.move(new_pos)

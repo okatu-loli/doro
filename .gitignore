@@ -6,7 +6,12 @@
 .vscode/
 input/
 output_gifs/
+build/main
+dist/
 
 # Files
 *.bat
 resources/config/config.json
+**/*.spec
+**/*.exe
+**/*.zip

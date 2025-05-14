@@ -16,7 +16,7 @@ class HungryStateHandler(StateHandler):
         self.hunger_timer = QTimer()
         self.hunger_timer.timeout.connect(self._update_hunger)
         self.hunger_number = 100
-        self.hunger_rate = self.pet_window.config.config["Hunger"]["Rate"]
+        self.hunger_rate = self.main_layer.config.config["Hunger"]["Rate"]
         self.hunger_timer.start(int(20000 / self.hunger_rate))
 
         # 注册到状态机的UI组件
@@ -31,7 +31,9 @@ class HungryStateHandler(StateHandler):
             return False
         elif self.state_machine.state_stack[-1] == PetState.DRAGGING:
             return False
-        self.pet_window.play_gif(random.choice(self.pet_window.hungry_gif_paths))
+        self.main_layer.pet_window.play_gif(
+            random.choice(self.main_layer.resource_manager.get_gif("Hungry"))
+        )
 
     def on_exit(self):
         return super().on_exit()
@@ -50,8 +52,8 @@ class HungryStateHandler(StateHandler):
 
     def _update_hunger(self):
         """更新饥饿度"""
-        if self.hunger_rate != self.pet_window.config.config["Hunger"]["Rate"]:
-            self.hunger_rate = self.pet_window.config.config["Hunger"]["Rate"]
+        if self.hunger_rate != self.main_layer.config.config["Hunger"]["Rate"]:
+            self.hunger_rate = self.main_layer.config.config["Hunger"]["Rate"]
             self.hunger_timer.stop()
             self.hunger_timer.start(int(20000 / self.hunger_rate))
             return

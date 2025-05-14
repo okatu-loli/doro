@@ -1,17 +1,25 @@
-from typing import Any, Dict, Final, Optional
+from typing import Any, Dict, Final, Optional, TYPE_CHECKING
+
+
+from .utils.EnvConsts import get_current_location
 
 from .utils.FileIO import json_dump, json_load
 from .auto_typehint import ConfigHint, FileIndexHint, ThemeHint
+
+if TYPE_CHECKING:
+    from .MainLayer import MainLayer
 
 
 class Config:
     # 预定义主题
     PATH_CONFIG: FileIndexHint.FileIndexParam = json_load(
-        "resources/config/file_index.json"
+        get_current_location() + "/resources/config/file_index.json"
     )
     THEMES: ThemeHint.ThemeParam = json_load(PATH_CONFIG["Theme"]["RelativePath"])
 
-    def __init__(self):
+    def __init__(self, main_layer: "MainLayer"):
+        self.main_layer: MainLayer = main_layer
+
         _config: Optional[ConfigHint.ConfigParam] = json_load(
             Config.PATH_CONFIG["Config"]["RelativePath"]
         )

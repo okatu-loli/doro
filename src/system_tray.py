@@ -1,21 +1,30 @@
 import os
 
+from typing import TYPE_CHECKING
+
 from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import (
     QSystemTrayIcon,
     QMenu,
 )
 
+
 from .config import Config
 from .pet_window import PetWindow
 from .setting_gui import SettingsDialog
 
+if TYPE_CHECKING:
+    from MainLayer import MainLayer
+
 
 class SystemTray:
 
-    def __init__(self, pet_window: PetWindow, config: Config) -> None:
+    def __init__(
+        self, pet_window: PetWindow, config: Config, main_layer: "MainLayer"
+    ) -> None:
         self.pet_window: PetWindow = pet_window
         self.config: Config = config
+        self.main_layer: MainLayer = main_layer
 
         # 创建系统托盘图标
         self.tray_icon: QSystemTrayIcon = QSystemTrayIcon()
