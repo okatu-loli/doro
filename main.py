@@ -1,6 +1,8 @@
 import os
 import sys
 
+from typing import NoReturn
+
 from src.MainLayer import MainLayer
 from src.state.base_state import PetState
 
@@ -10,10 +12,14 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from PySide6.QtWidgets import QApplication
 
 
-def main():
+def main() -> NoReturn:
     app = QApplication(sys.argv)
 
-    global_layer = MainLayer()
+    try:
+        global_layer = MainLayer()
+    except Exception as e:
+        print(f"Error initializing MainLayer: {e}")
+        sys.exit(1)
 
     global_layer.system_tray.show_tray_icon()
     global_layer.system_tray.show_pet()

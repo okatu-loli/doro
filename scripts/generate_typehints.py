@@ -1,5 +1,5 @@
 """
-[#ExecutionOrder = 1]
+[#name = typehint]
 
 This script generates type hints for the configuration files in the project.
 It reads JSON files from the 'resources/config' directory and generates
