@@ -3,46 +3,46 @@
 ```plain
 doro/
 ├── build/               # 构建脚本和工具
-│   └── generate_typehints.py  # 自动生成类型提示的脚本
-│   ├── format_files.py  # 格式化文件的脚本
-│   ├── build_all.py  # 运行所有构建脚本的脚本
 ├── doc/                 # 项目文档
-│   ├── development/     # 开发相关文档
-│   │   ├── Development.MD  # 开发文档
-│   │   └── Structure.MD    # 目录结构说明
-├── resources/           # 资源文件（动画、配置等）
+│   └── development/     # 开发相关文档
+├── resources/           # 资源文件（动画、配置、音频等）
 │   ├── config/          # 配置文件
-│   │   ├── default_config.json  # 默认配置
-│   │   ├── file_index.json      # 文件索引
-│   │   └── theme.json           # 主题配置
+│   │   ├── config.json         # 主配置
+│   │   ├── default_config.json # 默认配置
+│   │   ├── file_index.json     # 文件索引
+│   │   └── theme.json          # 主题配置
 │   ├── doro/            # 动画资源
+│   ├── icons/           # 图标资源
 │   └── music/           # 音频资源
+├── scripts/             # 辅助脚本(如格式化, 自动生成类型标注, 打包等)
 ├── src/                 # 源代码
-│   ├── auto_typehint/   # 自动生成的类型提示
-│   │   ├── ConfigHint.py       # 配置类型提示
-│   │   ├── FileIndexHint.py    # 文件索引类型提示
-│   │   ├── ThemeHint.py        # 主题类型提示
-│   │   └── __init__.py         # 类型提示包的初始化
+│   ├── auto_typehint/   # 自动生成的类型标注
+│   ├── MainLayer/       # 主逻辑中间层
+│   ├── ResourceManager/ # 资源管理器
 │   ├── state/           # 状态处理器
-│   │   ├── base_state.py       # 状态处理器基类
-│   │   ├── normal_state_handler.py  # 正常状态处理器
-│   │   ├── hungry_state_handler.py  # 饥饿状态处理器
-│   │   ├── moving_state_handler.py  # 移动状态处理器
-│   │   ├── dragging_state_handler.py  # 拖拽状态处理器
-│   │   ├── eating_state_handler.py    # 进食状态处理器
-│   │   ├── clicked_state_handler.py   # 点击状态处理器
-│   │   └── __init__.py         # 状态处理器包的初始化
+│   ├── utils/           # 工具模块
 │   ├── config.py        # 配置管理模块
 │   ├── pet_window.py    # 主窗口逻辑
+│   ├── setting_gui.py   # 设置界面模块
 │   ├── style_sheet.py   # 样式表生成模块
-│   └── setting_gui.py   # 设置界面模块
-└── main.py              # 程序入口
+│   ├── system_monitor.py# 系统信息监控
+│   └── system_tray.py   # 系统托盘相关
+├── Test/                # 测试脚本，统一命名为 test_xxx.py
+├── tools/               # 工具类脚本，如图片处理等
+├── main.py              # 程序入口
+├── requirements.txt     # Python 依赖
+├── environment.yml      # conda环境配置
+├── README.md            # 项目说明
+├── LICENSE              # 许可证
+├── logo.png             # 项目 logo
 ```
 
-## 功能说明
+## 目录与命名
 
-- **build/**: 包含构建工具和脚本，用于生成类型提示等辅助功能。
-- **doc/**: 项目文档，包括开发文档和目录结构说明。
-- **resources/**: 存放项目所需的资源文件，如动画、配置和音频。
-- **src/**: 项目的核心代码，包括状态处理器、配置管理、主窗口逻辑和样式表生成等。
-- **main.py**: 项目的入口文件，用于启动应用程序。
+- **build/**：仅存放构建、打包相关脚本，产物输出到 dist/
+- **dist/**：专门存放编译和打包后的可分发产物（如 Doro.exe），便于用户查找和分发
+- **resources/**：资源细分为 config/（配置）、doro/（动画）、icons/（图标）、music/（音频）等，命名清晰
+- **src/**：所有核心源代码
+- **scripts/**：存放开发、部署、辅助等脚本，避免与 build/ 混淆
+- **Test/**：所有测试脚本统一以 test\_ 开头，便于自动化测试
+- **tools/**：存放与主业务无关的工具类脚本
