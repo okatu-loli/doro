@@ -23,10 +23,10 @@ class NormalStateHandler(StateHandler):
 
     def on_enter(self):
         self.normal_timer.start(
-            1000 * self.pet_window.config.config["Random"]["Interval"]
+            1000 * self.main_layer.config.config["Random"]["Interval"]
         )
-        gif_path = random.choice(self.pet_window.normal_gif_paths)
-        self.pet_window.play_gif(gif_path)
+        gif_path = random.choice(self.main_layer.resource_manager.get_gif("Common"))
+        self.main_layer.pet_window.play_gif(gif_path)
 
     def on_exit(self):
         self.normal_timer.stop()
@@ -43,7 +43,7 @@ class NormalStateHandler(StateHandler):
     def update_config(self):
         self.normal_timer.stop()
         self.normal_timer.start(
-            1000 * self.pet_window.config.config["Random"]["Interval"]
+            1000 * self.main_layer.config.config["Random"]["Interval"]
         )
         return super().update_config()
 
@@ -62,8 +62,8 @@ class NormalStateHandler(StateHandler):
 
     def change_gif(self):
         if self.state_machine.current_state == PetState.NORMAL:
-            gif_path = random.choice(self.pet_window.normal_gif_paths)
-            self.pet_window.play_gif(gif_path)
+            gif_path = random.choice(self.main_layer.resource_manager.get_gif("Common"))
+            self.main_layer.pet_window.play_gif(gif_path)
 
     def handle_about(self):
         """处理关于"""
@@ -75,7 +75,7 @@ class NormalStateHandler(StateHandler):
 
     def show_settings(self):
         """显示设置对话框"""
-        dialog = SettingsDialog(self.pet_window.config, self.pet_window)
+        dialog = SettingsDialog(self.main_layer.config, self.main_layer.pet_window)
         dialog.exec()
 
     def show_about_info(self):
@@ -101,7 +101,7 @@ class NormalStateHandler(StateHandler):
 3. 系统托盘图标
    - 右键点击托盘图标可进行显示/隐藏、设置、关闭等操作。
         """
-        msg_box = QMessageBox(self.pet_window)
+        msg_box = QMessageBox(self.main_layer.pet_window)
         msg_box.setWindowTitle("关于 Doro 宠物")
         msg_box.setText(about_text)
         icon_path = os.path.join(

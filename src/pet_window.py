@@ -1,5 +1,6 @@
 import os
-from typing import Dict, List, Optional
+import random
+from typing import Dict, List, Optional, TYPE_CHECKING
 from PySide6.QtCore import Qt, QSize, QUrl, QEvent, Signal
 from PySide6.QtGui import QMovie, QIcon, QTransform
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
@@ -11,10 +12,12 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
 )
 
-
-from .state import StateMachine, PetState
+from .state import StateMachine
 from .config import Config
 from .style_sheet import generate_pet_info_css
+
+if TYPE_CHECKING:
+    from MainLayer import MainLayer
 
 
 class PetWindow(QMainWindow):
@@ -22,11 +25,12 @@ class PetWindow(QMainWindow):
 
     config_changed = Signal(str)  # 配置改变信号
 
-    def __init__(self, config: Config):
+    def __init__(self, config: Config, main_layer: "MainLayer"):
         super().__init__()
         self.config: Config = config
         self.movie: Optional[QMovie] = None  # 当前动画
         self.movie_cache: Dict[str, QMovie] = {}
+        self.main_layer: MainLayer = main_layer
 
         # 初始化窗口属性
         self._setup_window()
@@ -38,10 +42,8 @@ class PetWindow(QMainWindow):
         self._setup_audio()
         # 初始化状态机
         self._setup_state_machine()
-        # 立即播放初始动画
         # 设置信息窗口可见性
         self.set_info_visible()
-        self.state_machine.transition_to(PetState.NORMAL)
 
     def _setup_window(self):
         """设置窗口属性"""
@@ -107,10 +109,7 @@ class PetWindow(QMainWindow):
 
     def _load_resources(self):
         """加载资源文件"""
-        base_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), "resources", "doro"
-        )
-        self._load_gif_files(base_path)
+        self._load_gif_files()
 
         # 鼠标交互属性
         self.setMouseTracking(True)
@@ -124,13 +123,14 @@ class PetWindow(QMainWindow):
         self.audio_output = QAudioOutput()
         self.audio_player.setAudioOutput(self.audio_output)
 
-        music_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), "resources", "music"
-        )
-        self.click_mp3_path = os.path.join(music_path, "music.mp3")
-
-        if os.path.exists(self.click_mp3_path):
-            self.audio_player.setSource(QUrl.fromLocalFile(self.click_mp3_path))
+        if os.path.exists(Config.PATH_CONFIG["Resources"]["Music"]["DoubleClick"]):
+            self.audio_player.setSource(
+                QUrl.fromLocalFile(
+                    random.choice(
+                        self.main_layer.resource_manager.get_music("DoubleClick")
+                    )
+                )
+            )
             self.audio_player.stop()
 
     def _setup_state_machine(self):
@@ -154,35 +154,9 @@ class PetWindow(QMainWindow):
         total_height = self.config.config["Window"]["Height"]
         self.setFixedSize(total_width, total_height)
 
-    def _load_gif_files(self, base_path: str):
+    def _load_gif_files(self):
         """加载GIF文件"""
-        if not os.path.exists(base_path):
-            print(f"路径不存在: {base_path}")
-            return
-
-        self.normal_gif_paths = self._load_gif_from_folder(
-            os.path.join(base_path, "common")
-        )
-        self.hungry_gif_paths = self._load_gif_from_folder(
-            os.path.join(base_path, "hungry")
-        )
-        self.move_gif_paths = self._load_gif_from_folder(
-            os.path.join(base_path, "move")
-        )
-        self.click_gif_path = os.path.join(base_path, "click", "click.gif")
-        self.eat_gif_path = os.path.join(base_path, "eat", "eat.gif")
-        self.drag_gif_path = os.path.join(base_path, "drag", "drag.gif")
-
-        for gif_path in (
-            [
-                self.click_gif_path,
-                self.eat_gif_path,
-                self.drag_gif_path,
-            ]
-            + self.normal_gif_paths
-            + self.hungry_gif_paths
-            + self.move_gif_paths
-        ):
+        for gif_path in self.main_layer.resource_manager.get_all_gif():
             self.movie_cache[gif_path] = QMovie(gif_path)
             self.movie_cache[gif_path].stop()
 
@@ -208,7 +182,11 @@ class PetWindow(QMainWindow):
             self.movie.stop()
             self.animation_label.clear()
 
-        movie = self.movie_cache.get(gif_path, QMovie(gif_path))
+        movie = self.movie_cache.get(gif_path, None)
+        if movie is None:
+            movie = QMovie(gif_path)
+            self.movie_cache[gif_path] = movie
+
         movie.setScaledSize(
             QSize(
                 self.config.config["Window"]["Width"],

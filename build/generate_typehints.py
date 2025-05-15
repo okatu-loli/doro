@@ -7,6 +7,7 @@ Python TypedDict classes with appropriate type hints.
 The generated type hints are saved in the 'src/auto_typehint' directory.
 """
 
+import os
 import json
 from typing import Any, Dict, Final, List, Union
 
@@ -15,20 +16,6 @@ TYPING_HEAD: Final[
 ] = """\
 from __future__ import annotations
 from typing import Literal, TypedDict
-"""
-
-PACKAGE_HEAD: Final[
-    str
-] = """\
-from . import ConfigHint
-from . import FileIndexHint
-from . import ThemeHint
-
-__all__ = [
-    'ConfigHint',
-    'FileIndexHint',
-    'ThemeHint',
-]
 """
 
 class_name_list: List[str] = []
@@ -88,6 +75,44 @@ def generate_typeddict(
     return total_typeddict + "\n\n" + total_literal + "\n"
 
 
+def load_gif() -> Dict[str, Any]:
+    gif_dir = "resources/doro"
+    gif_data: Dict[str, Any] = {}
+
+    for root, dirs, files in os.walk(gif_dir):
+        rel_root = os.path.relpath(root, gif_dir)
+        current = gif_data
+        if rel_root != ".":
+            for part in rel_root.split(os.sep):
+                current = current.setdefault(part, {})
+        for d in dirs:
+            current.setdefault(d, {})
+        for f in files:
+            file_name = f.split(".")[0]
+            file_ext = os.path.splitext(f)[1]
+            current[file_name] = file_ext
+    return gif_data
+
+
+def load_music() -> Dict[str, Any]:
+    music_dir = "resources/music"
+    music_data: Dict[str, Any] = {}
+
+    for root, dirs, files in os.walk(music_dir):
+        rel_root = os.path.relpath(root, music_dir)
+        current = music_data
+        if rel_root != ".":
+            for part in rel_root.split(os.sep):
+                current = current.setdefault(part, {})
+        for d in dirs:
+            current.setdefault(d, {})
+        for f in files:
+            file_name = f.split(".")[0]
+            file_ext = os.path.splitext(f)[1]
+            current[file_name] = file_ext
+    return music_data
+
+
 def load_config() -> Dict[str, Any]:
     with open("resources/config/default_config.json", "r", encoding="utf-8") as f:
         config_json = json.load(f)
@@ -119,24 +144,30 @@ def generate() -> None:
     cfg_output = generate_typeddict("Config", load_config())
     file_index_output = generate_typeddict("FileIndex", load_file_index())
     theme_output = generate_typeddict("Theme", load_theme())
+    gif_output = generate_typeddict("GifDir", load_gif())
+    music_output = generate_typeddict("MusicDir", load_music())
 
-    write_to(
-        "src/auto_typehint/ConfigHint.py",
-        TYPING_HEAD,
-        cfg_output,
-    )
-    write_to(
-        "src/auto_typehint/FileIndexHint.py",
-        TYPING_HEAD,
-        file_index_output,
-    )
-    write_to(
-        "src/auto_typehint/ThemeHint.py",
-        TYPING_HEAD,
-        theme_output,
-    )
-    write_to("src/auto_typehint/__init__.py", PACKAGE_HEAD, "")
+    total = {
+        "ConfigHint": cfg_output,
+        "FileIndexHint": file_index_output,
+        "ThemeHint": theme_output,
+        "GifHint": gif_output,
+        "MusicHint": music_output,
+    }
+
+    package_head: str = ""
+    for name, content in total.items():
+        package_head += f"from . import {name}\n"
+        write_to(f"src/auto_typehint/{name}.py", TYPING_HEAD, content)
+
+    package_head += "__all__ = [\n"
+    for name in total.keys():
+        package_head += f"    '{name}',\n"
+    package_head += "]\n"
+
+    write_to("src/auto_typehint/__init__.py", package_head, "")
 
 
 if __name__ == "__main__":
     generate()
+    # print(load_resource())

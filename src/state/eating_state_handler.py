@@ -1,3 +1,4 @@
+import random
 from PySide6.QtCore import QTimer, QEvent, Qt
 from PySide6.QtGui import QMouseEvent
 from .base_state import StateHandler, PetState
@@ -14,7 +15,9 @@ class EatingStateHandler(StateHandler):
 
     def on_enter(self):
         self.eating_end_timer.start(3000)
-        self.pet_window.play_gif(self.pet_window.eat_gif_path)
+        self.main_layer.pet_window.play_gif(
+            random.choice(self.main_layer.resource_manager.get_gif("Eat"))
+        )
 
     def on_exit(self):
         self.eating_end_timer.stop()

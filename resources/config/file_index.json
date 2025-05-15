@@ -1,28 +1,28 @@
 {
   "DefaultConfig": {
-    "RelativePath": "resources/config/default_config.json"
+    "RelativePath": "{ROOT}/resources/config/default_config.json"
   },
   "Config": {
-    "RelativePath": "resources/config/config.json"
+    "RelativePath": "{ROOT}/resources/config/config.json"
   },
   "Theme": {
-    "RelativePath": "resources/config/theme.json"
+    "RelativePath": "{ROOT}/resources/config/theme.json"
   },
   "Icon": {
-    "RelativePath": "{PROJECT_ROOT}/resources/icons/favicon.ico"
+    "RelativePath": "{ROOT}/resources/icons/favicon.ico"
   },
   "Resources": {
     "Music": {
-      "RelativePath": "resources/music/"
+      "DoubleClick": "{ROOT}/resources/music/DoubleClick"
     },
     "Gif": {
-      "RelativePath": "resources/doro/",
-      "Click": "resources/doro/click/",
-      "Common": "resources/doro/common/",
-      "Darg": "resources/doro/darg/",
-      "Eat": "resources/doro/eat/",
-      "Hungry": "resources/doro/hungry/",
-      "Move": "resources/doro/move/"
+      "RelativePath": "{ROOT}/resources/doro/",
+      "Click": "{ROOT}/resources/doro/Click/",
+      "Common": "{ROOT}/resources/doro/Common/",
+      "Drag": "{ROOT}/resources/doro/Drag/",
+      "Eat": "{ROOT}/resources/doro/Eat/",
+      "Hungry": "{ROOT}/resources/doro/Hungry/",
+      "Move": "{ROOT}/resources/doro/Move/"
     }
   }
 }

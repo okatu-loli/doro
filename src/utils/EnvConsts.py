@@ -1,12 +1,6 @@
 import os
+import sys
 from typing import Any, Dict
-
-
-REFL_MAP = {
-    "PROJECT_ROOT": os.path.dirname(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    ),  # 项目根目录
-}
 
 
 def replace_map(iterable: Dict[Any, Any]) -> None:
@@ -21,3 +15,15 @@ def replace_map(iterable: Dict[Any, Any]) -> None:
             pass
         else:
             raise TypeError(f"Unsupported type: {type(value)}")
+
+
+def get_current_location():
+    if getattr(sys, "frozen", False):
+        return os.path.dirname(os.path.abspath(sys.executable))
+    else:
+        return os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+
+
+REFL_MAP = {
+    "ROOT": get_current_location(),  # 根目录
+}

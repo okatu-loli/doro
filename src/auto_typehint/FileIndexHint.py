@@ -20,14 +20,14 @@ class IconParam(TypedDict):
 
 
 class MusicParam(TypedDict):
-    RelativePath: str
+    DoubleClick: str
 
 
 class GifParam(TypedDict):
     RelativePath: str
     Click: str
     Common: str
-    Darg: str
+    Drag: str
     Eat: str
     Hungry: str
     Move: str
@@ -52,8 +52,8 @@ ConfigLiteral = Literal["RelativePath"]
 ThemeLiteral = Literal["RelativePath"]
 IconLiteral = Literal["RelativePath"]
 ResourcesLiteral = Literal["Music", "Gif"]
-MusicLiteral = Literal["RelativePath"]
-GifLiteral = Literal["RelativePath", "Click", "Common", "Darg", "Eat", "Hungry", "Move"]
+MusicLiteral = Literal["DoubleClick"]
+GifLiteral = Literal["RelativePath", "Click", "Common", "Drag", "Eat", "Hungry", "Move"]
 ResourcesParamLiteral = Literal[MusicParam, GifParam]
 FileIndexParamLiteral = Literal[
     DefaultConfigParam, ConfigParam, ThemeParam, IconParam, ResourcesParam

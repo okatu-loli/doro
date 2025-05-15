@@ -1,5 +1,5 @@
 import time
-from typing import Dict, List, Optional, Callable
+from typing import Any, Dict, List, Optional, Callable
 from PySide6.QtCore import QTimer, QEvent
 from PySide6.QtWidgets import (
     QLabel,
@@ -44,22 +44,22 @@ class StateMachine:
         self.last_net_time = time.time()
 
         # 初始化所有状态处理器
-        self._init_state_handlers()
-        # 从正常状态开始
-        self.transition_to(PetState.NORMAL)
+        self._init_state_handlers(self.pet_window.main_layer)
+        # # 从正常状态开始
+        # self.transition_to(PetState.NORMAL)
         # 初始化系统监控定时器
         self._init_system_monitor()
 
-    def _init_state_handlers(self):
+    def _init_state_handlers(self, *args: Any, **kwargs: Dict[Any, Any]):
         """初始化所有状态处理器"""
         # 使用类名映射来创建处理器实例
         handler_classes: Dict[PetState, StateHandler] = {
-            PetState.NORMAL: NormalStateHandler(self),
-            PetState.HUNGRY: HungryStateHandler(self),
-            PetState.MOVING: MovingStateHandler(self),
-            PetState.DRAGGING: DraggingStateHandler(self),
-            PetState.EATING: EatingStateHandler(self),
-            PetState.CLICKED: ClickedStateHandler(self),
+            PetState.NORMAL: NormalStateHandler(self, *args, **kwargs),
+            PetState.HUNGRY: HungryStateHandler(self, *args, **kwargs),
+            PetState.MOVING: MovingStateHandler(self, *args, **kwargs),
+            PetState.DRAGGING: DraggingStateHandler(self, *args, **kwargs),
+            PetState.EATING: EatingStateHandler(self, *args, **kwargs),
+            PetState.CLICKED: ClickedStateHandler(self, *args, **kwargs),
         }
 
         for state, instance in handler_classes.items():

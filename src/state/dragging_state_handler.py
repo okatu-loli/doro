@@ -1,3 +1,4 @@
+import random
 from typing import Optional
 from PySide6.QtCore import Qt, QEvent, QTimer, QPoint
 from PySide6.QtGui import QMouseEvent
@@ -22,7 +23,9 @@ class DraggingStateHandler(StateHandler):
             return False
         self.is_dragging = True
         self.debounce_end_dragging()
-        self.pet_window.play_gif(self.pet_window.drag_gif_path)
+        self.main_layer.pet_window.play_gif(
+            random.choice(self.main_layer.resource_manager.get_gif("Drag"))
+        )
         self.old_pos = None
         self.state_machine.timers["monitor"].stop()
         return True
@@ -71,24 +74,30 @@ class DraggingStateHandler(StateHandler):
 
         current_pos = event.globalPos()
         delta = current_pos - self.old_pos
-        new_pos = self.pet_window.pos() + delta
+        new_pos = self.main_layer.pet_window.pos() + delta
 
         # 多显示器适配
         screen_geometry = QApplication.screenAt(current_pos).availableGeometry()
         new_pos.setX(
             max(
                 screen_geometry.left(),
-                min(new_pos.x(), screen_geometry.right() - self.pet_window.width()),
+                min(
+                    new_pos.x(),
+                    screen_geometry.right() - self.main_layer.pet_window.width(),
+                ),
             )
         )
         new_pos.setY(
             max(
                 screen_geometry.top(),
-                min(new_pos.y(), screen_geometry.bottom() - self.pet_window.height()),
+                min(
+                    new_pos.y(),
+                    screen_geometry.bottom() - self.main_layer.pet_window.height(),
+                ),
             )
         )
 
-        self.pet_window.move(new_pos)
+        self.main_layer.pet_window.move(new_pos)
         self.old_pos = current_pos
         return True
 

@@ -4,19 +4,14 @@ from types import NoneType
 from typing import List, Type, TypeVar, TypedDict
 from PySide6.QtCore import Qt, QEvent
 from PySide6.QtGui import QAction, QMouseEvent
-from PySide6.QtWidgets import (
-    QMenu,
-)
+from PySide6.QtWidgets import QMenu
 
-from ..style_sheet import (
-    generate_menu_css,
-)
+from ..style_sheet import generate_menu_css
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from state import (
-        StateMachine,
-    )
+    from state import StateMachine
+    from ..MainLayer import MainLayer
 
 
 class PetState(Enum):
@@ -55,9 +50,9 @@ class StateHandler(ABC):
     global_menu_decorators: List[GlobalMenuDecoratorsType] = []
     """全局右键菜单"""
 
-    def __init__(self, state_machine: "StateMachine"):
-        self.state_machine = state_machine
-        self.pet_window = state_machine.pet_window
+    def __init__(self, state_machine: "StateMachine", main_layer: "MainLayer"):
+        self.main_layer: MainLayer = main_layer
+        self.state_machine: StateMachine = state_machine
         if not hasattr(self, "menu_decorators"):
             self.menu_decorators = []
         self._init_state()
@@ -99,7 +94,7 @@ class StateHandler(ABC):
 
     def create_base_context_menu(self) -> QMenu:
         """创建右键菜单"""
-        menu = QMenu(self.pet_window)
+        menu = QMenu(self.main_layer.pet_window)
         menu.setStyleSheet(generate_menu_css())
 
         # 有特殊右键菜单的优先使用特殊菜单, 否则沿用全局注册的菜单
@@ -108,7 +103,7 @@ class StateHandler(ABC):
                 if decorator["separator"]:
                     menu.addSeparator()
                 try:
-                    action = QAction(decorator["label"], self.pet_window)
+                    action = QAction(decorator["label"], self.main_layer.pet_window)
                     if decorator["handler"]:
                         handler = getattr(self, decorator["handler"])
                         action.triggered.connect(handler)
@@ -120,7 +115,7 @@ class StateHandler(ABC):
                 if decorator["separator"]:
                     menu.addSeparator()
                 try:
-                    action = QAction(decorator["label"], self.pet_window)
+                    action = QAction(decorator["label"], self.main_layer.pet_window)
                     if decorator["handler"]:
                         handler = getattr(decorator["cls"], decorator["handler"])
                         action.triggered.connect(handler)

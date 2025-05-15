@@ -1,6 +1,9 @@
 import os
+import random
 from PySide6.QtCore import QTimer, QUrl, QEvent, Qt
 from PySide6.QtGui import QMouseEvent
+
+from ..config import Config
 from .base_state import PetState, StateHandler
 
 
@@ -14,17 +17,23 @@ class ClickedStateHandler(StateHandler):
         return super()._init_state()
 
     def on_enter(self):
-        self.pet_window.play_gif(self.pet_window.click_gif_path)
-        if os.path.exists(self.pet_window.click_mp3_path):
-            self.pet_window.audio_player.setSource(
-                QUrl.fromLocalFile(self.pet_window.click_mp3_path)
+        self.main_layer.pet_window.play_gif(
+            random.choice(self.main_layer.resource_manager.get_gif("Click"))
+        )
+        if os.path.exists(Config.PATH_CONFIG["Resources"]["Music"]["DoubleClick"]):
+            self.main_layer.pet_window.audio_player.setSource(
+                QUrl.fromLocalFile(
+                    random.choice(
+                        self.main_layer.resource_manager.get_music("DoubleClick")
+                    )
+                )
             )
-            self.pet_window.audio_player.play()
+            self.main_layer.pet_window.audio_player.play()
             self.click_end_timer.start(18000)
 
     def on_exit(self):
         self.click_end_timer.stop()
-        self.pet_window.audio_player.stop()
+        self.main_layer.pet_window.audio_player.stop()
         return False
 
     def handle_event(self, event: QEvent) -> bool:
