@@ -1,16 +1,23 @@
 import os
+import sys
 import unittest
 
+from src.MainLayer import MainLayer
 from src.config import Config
+
+from PySide6.QtWidgets import QApplication
+
+app = QApplication.instance() or QApplication(sys.argv)
 
 
 class TestConfig(unittest.TestCase):
     def setUp(self):
         # reset config file
+        self.main_layer = MainLayer()
         config_path = "resources/config/config.json"
         if os.path.exists(config_path):
             os.remove(config_path)
-        self.config: Config = Config()
+        self.config: Config = Config(self.main_layer)
 
     def test_default_values(self):
         """Test default values in the config
@@ -28,7 +35,7 @@ class TestConfig(unittest.TestCase):
         self.config.config["Window"]["Width"] = 300
         self.config.config["Window"]["Height"] = 300
         self.config.save()
-        new_config = Config()
+        new_config = Config(self.main_layer)
         self.assertEqual(new_config.config["Window"]["Width"], 300)
         self.assertEqual(new_config.config["Window"]["Height"], 300)
 
