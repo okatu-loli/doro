@@ -10,13 +10,14 @@ for %%I in ("%CURRENT_DIR%\..") do set "ROOT_DIR=%%~fI"
 set "BUILD_DIR=%ROOT_DIR%\build"
 set "PYTHON_DIR=%ROOT_DIR%\python"
 set "DIST_DIR=%ROOT_DIR%\dist"
+set "RESOURCES_DIR=%ROOT_DIR%\resources"
 
 @REM Remove the last build exe
 del "%DIST_DIR%\main.exe"
 del "%DIST_DIR%\Doro.exe"
 
 @REM Run the build script
-call pyinstaller.exe --onefile -w --distpath %DIST_DIR% %ROOT_DIR%\main.py --clean
+call pyinstaller.exe --onefile -w --distpath %DIST_DIR% --icon=%RESOURCES_DIR%\icons\favicon.ico %ROOT_DIR%\main.py --clean
 
 @REM Rename the exe
 set "EXE_NAME=main.exe"
