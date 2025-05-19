@@ -2,7 +2,8 @@
   "Window": {
     "Width": 200,
     "Height": 200,
-    "StaysOnTop": true
+    "StaysOnTop": true,
+    "Frameless": true
   },
   "Animation": {
     "FPS": 30

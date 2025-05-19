@@ -103,6 +103,11 @@ class SettingsDialog(QDialog):
         )
         form_layout.addRow("窗口置顶:", self.always_on_top_checkbox)
 
+        # 窗口模式设置
+        self.window_mode_checkbox = QCheckBox()
+        self.window_mode_checkbox.setChecked(self.config.config["Window"]["Frameless"])
+        form_layout.addRow("无边框模式:", self.window_mode_checkbox)
+
         main_layout.addLayout(form_layout)
 
         # 添加按钮布局
@@ -144,6 +149,9 @@ class SettingsDialog(QDialog):
         self.config.config["Window"][
             "StaysOnTop"
         ] = self.always_on_top_checkbox.isChecked()
+        self.config.config["Window"][
+            "Frameless"
+        ] = self.window_mode_checkbox.isChecked()
         self.config.config["Theme"]["DefaultTheme"] = self.theme_combo.currentText()
         self.config.config["Random"]["Interval"] = self.random_interval_spin.value()
         self.config.config["Hunger"]["Rate"] = self.hunger_rate_spin.value()

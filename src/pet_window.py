@@ -32,29 +32,24 @@ class PetWindow(QMainWindow):
         self.movie_cache: Dict[str, QMovie] = {}
         self.main_layer: MainLayer = main_layer
 
-        # 初始化窗口属性
-        self._setup_window()
         # 初始化UI组件
         self._setup_ui()
+        # 初始化窗口属性
+        self._setup_window()
         # 加载资源
         self._load_resources()
         # 初始化音频
         self._setup_audio()
         # 初始化状态机
         self._setup_state_machine()
-        # 设置信息窗口可见性
-        self.set_info_visible()
-        # 设置窗口是否置顶
-        self.set_always_on_top(self.config.config["Window"]["StaysOnTop"])
 
     def _setup_window(self):
         """设置窗口属性"""
-        self.setWindowFlags(
-            Qt.WindowType.FramelessWindowHint
-            | Qt.WindowType.WindowStaysOnTopHint
-            | Qt.WindowType.Tool
-        )
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setWindowTitle("doro")
+
+        self.set_info_visible()
+        self.set_always_on_top(self.config.config["Window"]["StaysOnTop"])
+        self.set_frameless_mode(self.config.config["Window"]["Frameless"])
 
         # 设置窗口图标
         icon_path = Config.PATH_CONFIG["Icon"]["RelativePath"]
@@ -227,6 +222,23 @@ class PetWindow(QMainWindow):
         self.setWindowFlags(flags)
         self.show()
 
+    def set_frameless_mode(self, frameless: bool):
+        """
+        切换窗口模式: True 为标准窗口(带边框, 便于录屏), False 为无边框(桌宠模式)
+        """
+        flags: Qt.WindowType = self.windowFlags()
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        flags &= ~Qt.WindowType.WindowMinimizeButtonHint  # 禁止最小化
+        if not frameless:  # 标准窗口模式
+            flags &= ~Qt.WindowType.Tool
+            flags &= ~Qt.WindowType.FramelessWindowHint
+        else:  # 无边框模式
+            flags |= Qt.WindowType.Tool
+            flags |= Qt.WindowType.FramelessWindowHint
+
+        self.setWindowFlags(flags)
+        self.show()
+
     def update_theme(self):
         """更新主题颜色"""
         colors = self.config.get_theme_colors()
@@ -239,9 +251,9 @@ class PetWindow(QMainWindow):
         """更新配置"""
         # 更新信息框显示状态
         self.set_info_visible()
-        # 更新窗口置顶
+        # 更新窗口模式
         self.set_always_on_top(self.config.config["Window"]["StaysOnTop"])
-
+        self.set_frameless_mode(self.config.config["Window"]["Frameless"])
         # 更新主题
         self.update_theme()
         self.state_machine.update_config()
