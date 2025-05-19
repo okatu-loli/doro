@@ -9,6 +9,8 @@ output_gifs/
 build/main
 dist/
 
+**/*.bak
+
 # Files
 *.bat
 resources/config/config.json

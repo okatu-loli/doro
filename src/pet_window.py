@@ -44,6 +44,8 @@ class PetWindow(QMainWindow):
         self._setup_state_machine()
         # 设置信息窗口可见性
         self.set_info_visible()
+        # 设置窗口是否置顶
+        self.set_always_on_top(self.config.config["Window"]["StaysOnTop"])
 
     def _setup_window(self):
         """设置窗口属性"""
@@ -215,6 +217,16 @@ class PetWindow(QMainWindow):
         self.info_widget.setVisible(self.config.config["Info"]["ShowInfo"])
         self._update_window_size()
 
+    def set_always_on_top(self, always_on_top: bool):
+        """设置窗口是否置顶"""
+        flags = self.windowFlags()
+        if always_on_top:
+            flags |= Qt.WindowType.WindowStaysOnTopHint
+        else:
+            flags &= ~Qt.WindowType.WindowStaysOnTopHint
+        self.setWindowFlags(flags)
+        self.show()
+
     def update_theme(self):
         """更新主题颜色"""
         colors = self.config.get_theme_colors()
@@ -227,6 +239,8 @@ class PetWindow(QMainWindow):
         """更新配置"""
         # 更新信息框显示状态
         self.set_info_visible()
+        # 更新窗口置顶
+        self.set_always_on_top(self.config.config["Window"]["StaysOnTop"])
 
         # 更新主题
         self.update_theme()

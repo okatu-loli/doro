@@ -13,8 +13,8 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from .config import Config
 from .auto_typehint import ThemeHint
+from .config import Config
 from .style_sheet import generate_full_css, generate_preview_css
 
 if TYPE_CHECKING:
@@ -96,6 +96,13 @@ class SettingsDialog(QDialog):
         )
         form_layout.addRow("允许自主随机运动:", self.allow_random_movement_checkbox)
 
+        # 置顶窗口设置
+        self.always_on_top_checkbox = QCheckBox()
+        self.always_on_top_checkbox.setChecked(
+            self.config.config["Window"]["StaysOnTop"]
+        )
+        form_layout.addRow("窗口置顶:", self.always_on_top_checkbox)
+
         main_layout.addLayout(form_layout)
 
         # 添加按钮布局
@@ -134,6 +141,9 @@ class SettingsDialog(QDialog):
         # 更新配置
         self.config.config["Window"]["Width"] = self.width_spin.value()
         self.config.config["Window"]["Height"] = self.height_spin.value()
+        self.config.config["Window"][
+            "StaysOnTop"
+        ] = self.always_on_top_checkbox.isChecked()
         self.config.config["Theme"]["DefaultTheme"] = self.theme_combo.currentText()
         self.config.config["Random"]["Interval"] = self.random_interval_spin.value()
         self.config.config["Hunger"]["Rate"] = self.hunger_rate_spin.value()
@@ -144,10 +154,10 @@ class SettingsDialog(QDialog):
         # 保存到环境变量文件
         self.config.save()
 
-        parent_window: PetWindow = self.parent()  # type: ignore[assignment]
+        self.parent_window: PetWindow = self.parent()  # type: ignore[assignment]
 
         # 更新窗口大小
-        parent_window.setFixedSize(
+        self.parent_window.setFixedSize(
             self.config.config["Window"]["Width"],
             self.config.config["Window"]["Height"],
         )
@@ -161,7 +171,7 @@ class SettingsDialog(QDialog):
         # TODO: 这里原版本里是有这个的, 但似乎并未实现(NotImplemented)
         # parent_window.set_chat_enabled(self.config.enable_chat)
 
-        parent_window.update_config()
+        self.parent_window.update_config()
 
         # 显示保存成功提示
         QMessageBox.information(self, "提示", "设置已保存！")

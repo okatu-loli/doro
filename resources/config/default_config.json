@@ -1,7 +1,8 @@
 {
   "Window": {
     "Width": 200,
-    "Height": 200
+    "Height": 200,
+    "StaysOnTop": true
   },
   "Animation": {
     "FPS": 30

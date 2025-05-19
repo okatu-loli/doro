@@ -6,6 +6,7 @@ from typing import Literal, TypedDict
 class WindowParam(TypedDict):
     Width: int
     Height: int
+    StaysOnTop: bool
 
 
 class AnimationParam(TypedDict):
@@ -45,7 +46,7 @@ class ConfigParam(TypedDict):
 ConfigLiteral = Literal[
     "Window", "Animation", "Random", "Info", "Theme", "Workspace", "Hunger"
 ]
-WindowLiteral = Literal["Width", "Height"]
+WindowLiteral = Literal["Width", "Height", "StaysOnTop"]
 AnimationLiteral = Literal["FPS"]
 RandomLiteral = Literal["Interval"]
 InfoLiteral = Literal["ShowInfo"]
