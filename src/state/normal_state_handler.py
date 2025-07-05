@@ -9,6 +9,7 @@ from ..style_sheet import (
     generate_messagebox_css,
 )
 from ..setting_gui import SettingsDialog
+from ..pages import get_page
 
 
 @menu_item("关于Doro", "handle_about", isGlobal=0)
@@ -80,27 +81,7 @@ class NormalStateHandler(StateHandler):
 
     def show_about_info(self):
         """显示关于信息"""
-        about_text = """Doro 桌宠使用指南
-        
-人，你来啦
-
-
-1. 基本交互
-   - 拖动: 按住左键拖动动画区域。
-   - 双击: 双击动画区域播放特殊动画。
-   - 右键菜单: 点击动画区域弹出菜单。
-     - 喂食哦润吉 🍊: 恢复饥饿值。
-     - 关于Doro: 显示此指南。
-
-2. 主要功能
-   - 动画: 多种状态动画。
-   - 随机移动: 不时在屏幕上走动。
-   - 系统信息: 显示 CPU、内存、网速。
-   - 主题: 可在设置中更改。
-
-3. 系统托盘图标
-   - 右键点击托盘图标可进行显示/隐藏、设置、关闭等操作。
-        """
+        about_text = get_page("about.html")
         msg_box = QMessageBox(self.main_layer.pet_window)
         msg_box.setWindowTitle("关于 Doro 宠物")
         msg_box.setText(about_text)
