@@ -19,18 +19,20 @@ jobs:
           auto-update-conda: true
           activate-environment: doro
           environment-file: environment.yml
-          python-version: 3.12.9
+          python-version: 3.10
           auto-activate-base: false
 
-      - name: Verify environment
-        shell: bash
+      - name: Verify Conda Environment
+        shell: cmd
         run: |
+          call activate doro
           conda info
           conda list
 
-      - name: Build with PyInstaller (Conda)
-        shell: bash
+      - name: Build with PyInstaller
+        shell: cmd
         run: |
+          call activate doro
           python build/__main__.py
 
       - name: Upload Artifacts
